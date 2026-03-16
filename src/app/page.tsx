@@ -502,6 +502,40 @@ export default function HomePage() {
       </section>
 
       {/* ================================================================ */}
+      {/*  4-2. 버스고만의 특별혜택                                          */}
+      {/* ================================================================ */}
+      <section className="bg-[#F8FAFC] py-14 md:py-20">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-gray-500 text-sm mb-2">전국 어디에서나, 나와 딱 맞는 버스를 구해보세요!</p>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-10">
+            버스고만의 특별혜택
+          </h2>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            {[
+              { icon: '⏱️', title: '빠른 무료 견적', desc: '평균 10분에 15개의\n견적을 받아보세요.' },
+              { icon: '💰', title: '합리적인 비용', desc: '견적을 비교하고\n최저가로 예약하세요.' },
+              { icon: '📸', title: '실제 버스사진', desc: '탑승하기 전 버스 상태를\n체크할 수 있어요.' },
+              { icon: '✅', title: '인증된 기사님', desc: '100% 인증된\n기사님만 활동합니다.' },
+              { icon: '⭐', title: '이용후기', desc: '실제 승객들의 후기를\n확인 해보세요.' },
+              { icon: '🚌', title: '100% 배차', desc: '운행당일까지 꼼꼼하게,\n신경써서 연결해드립니다.' },
+            ].map((item) => (
+              <div
+                key={item.title}
+                className="bg-white rounded-2xl border border-gray-200 p-6 flex flex-col items-center text-center hover:shadow-md transition-shadow"
+              >
+                <div className="w-14 h-14 flex items-center justify-center rounded-full bg-[#FFF5F0] mb-4">
+                  <span className="text-2xl">{item.icon}</span>
+                </div>
+                <h3 className="font-bold text-gray-900 text-base mb-2">{item.title}</h3>
+                <p className="text-sm text-gray-500 leading-relaxed whitespace-pre-line">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ================================================================ */}
       {/*  5. Stats Bar                                                    */}
       {/* ================================================================ */}
       <section className="bg-white border-b border-gray-100 shadow-sm">
@@ -1004,6 +1038,23 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+
+      {/* ================================================================ */}
+      {/*  하단 고정 견적 신청 버튼                                          */}
+      {/* ================================================================ */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.1)] px-4 py-3 md:py-4">
+        <div className="max-w-2xl mx-auto">
+          <button
+            onClick={() => scrollTo('#quote-form')}
+            className="w-full py-3.5 md:py-4 bg-[#FFE812] hover:bg-[#FFD700] text-gray-900 text-base md:text-lg font-extrabold rounded-xl transition-colors shadow-md flex items-center justify-center gap-2"
+          >
+            🚌 최저가 버스 견적 신청하기
+          </button>
+        </div>
+      </div>
+
+      {/* 하단 고정바 높이만큼 여백 */}
+      <div className="h-[68px] md:h-[76px]" />
     </div>
   );
 }
