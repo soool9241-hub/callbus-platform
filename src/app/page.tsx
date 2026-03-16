@@ -103,7 +103,7 @@ const faqData = [
 
 const navLinks = [
   { label: '견적신청', href: '#hero' },
-  { label: '차량안내', href: '#vehicles' },
+  { label: '간편 버스대절', href: '#vehicles' },
   { label: '이용방법', href: '#how-it-works' },
   { label: '후기', href: '#reviews' },
   { label: 'FAQ', href: '#faq' },
@@ -123,6 +123,7 @@ export default function HomePage() {
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'bus' | 'package'>('bus');
+  const [tripType, setTripType] = useState<'round' | 'oneway'>('round');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   // Quote form state
@@ -144,6 +145,7 @@ export default function HomePage() {
     if (passengers) params.set('passengers', passengers);
     if (vehicleType) params.set('vehicleType', vehicleType);
     if (purpose) params.set('purpose', purpose);
+    params.set('tripType', tripType);
     if (activeTab === 'package') params.set('type', 'package');
     router.push(`/customer/quote-request?${params.toString()}`);
   }
@@ -185,18 +187,26 @@ export default function HomePage() {
                   {link.label}
                 </button>
               ))}
-              <Link
-                href="/auth?role=customer"
-                className="inline-flex items-center px-4 py-2 border-2 border-[#1B6FF4] text-[#1B6FF4] text-sm font-semibold rounded-lg hover:bg-[#1B6FF4] hover:text-white transition-colors"
+              <button
+                onClick={() => { setActiveTab('bus'); scrollTo('#hero'); }}
+                className={`inline-flex items-center px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${
+                  activeTab === 'bus'
+                    ? 'bg-[#1B6FF4] text-white'
+                    : 'border-2 border-[#1B6FF4] text-[#1B6FF4] hover:bg-[#1B6FF4] hover:text-white'
+                }`}
               >
-                일반 회원가입
-              </Link>
-              <Link
-                href="/auth?role=driver"
-                className="inline-flex items-center px-4 py-2 bg-[#FF6B35] text-white text-sm font-semibold rounded-lg hover:bg-[#E55A2B] transition-colors"
+                🚌 버스만
+              </button>
+              <button
+                onClick={() => { setActiveTab('package'); scrollTo('#hero'); }}
+                className={`inline-flex items-center px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${
+                  activeTab === 'package'
+                    ? 'bg-[#FF6B35] text-white'
+                    : 'border-2 border-[#FF6B35] text-[#FF6B35] hover:bg-[#FF6B35] hover:text-white'
+                }`}
               >
-                🚌 기사님 전용
-              </Link>
+                🏕️ 버스+펜션
+              </button>
             </div>
 
             {/* Mobile hamburger */}
@@ -223,20 +233,24 @@ export default function HomePage() {
                   {link.label}
                 </button>
               ))}
-              <Link
-                href="/auth?role=customer"
-                className="block w-full text-center px-4 py-2.5 border-2 border-[#1B6FF4] text-[#1B6FF4] font-semibold rounded-lg"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                일반 회원가입
-              </Link>
-              <Link
-                href="/auth?role=driver"
-                className="block w-full text-center px-4 py-2.5 bg-[#FF6B35] text-white font-semibold rounded-lg"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                🚌 기사님 전용
-              </Link>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => { setActiveTab('bus'); setMobileMenuOpen(false); scrollTo('#hero'); }}
+                  className={`text-center px-4 py-2.5 font-semibold rounded-lg transition-colors ${
+                    activeTab === 'bus' ? 'bg-[#1B6FF4] text-white' : 'border-2 border-[#1B6FF4] text-[#1B6FF4]'
+                  }`}
+                >
+                  🚌 버스만
+                </button>
+                <button
+                  onClick={() => { setActiveTab('package'); setMobileMenuOpen(false); scrollTo('#hero'); }}
+                  className={`text-center px-4 py-2.5 font-semibold rounded-lg transition-colors ${
+                    activeTab === 'package' ? 'bg-[#FF6B35] text-white' : 'border-2 border-[#FF6B35] text-[#FF6B35]'
+                  }`}
+                >
+                  🏕️ 버스+펜션
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -301,6 +315,32 @@ export default function HomePage() {
 
                 {/* Form */}
                 <form onSubmit={handleQuoteSubmit} className="p-5 space-y-3">
+                  {/* 왕복/편도 토글 */}
+                  <div className="flex bg-gray-100 rounded-lg p-1">
+                    <button
+                      type="button"
+                      onClick={() => { setTripType('round'); }}
+                      className={`flex-1 py-2 text-sm font-semibold rounded-md transition-all ${
+                        tripType === 'round'
+                          ? 'bg-white text-[#1B6FF4] shadow-sm'
+                          : 'text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      🔄 왕복
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setTripType('oneway'); setReturnDate(''); }}
+                      className={`flex-1 py-2 text-sm font-semibold rounded-md transition-all ${
+                        tripType === 'oneway'
+                          ? 'bg-white text-[#1B6FF4] shadow-sm'
+                          : 'text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      ➡️ 편도
+                    </button>
+                  </div>
+
                   {/* Departure */}
                   <div className="relative">
                     <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -326,7 +366,7 @@ export default function HomePage() {
                   </div>
 
                   {/* Dates row */}
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className={`grid gap-2 ${tripType === 'round' ? 'grid-cols-2' : 'grid-cols-1'}`}>
                     <div className="relative">
                       <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                       <input
@@ -337,17 +377,18 @@ export default function HomePage() {
                         className="w-full pl-10 pr-2 py-3 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1B6FF4]/30 focus:border-[#1B6FF4]"
                       />
                     </div>
-                    <div className="relative">
-                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                      <input
-                        type="date"
-                        value={returnDate}
-                        onChange={(e) => setReturnDate(e.target.value)}
-                        title="귀환일 (왕복시)"
-                        placeholder="귀환일"
-                        className="w-full pl-10 pr-2 py-3 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B6FF4]/30 focus:border-[#1B6FF4]"
-                      />
-                    </div>
+                    {tripType === 'round' && (
+                      <div className="relative">
+                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input
+                          type="date"
+                          value={returnDate}
+                          onChange={(e) => setReturnDate(e.target.value)}
+                          title="귀환일"
+                          className="w-full pl-10 pr-2 py-3 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B6FF4]/30 focus:border-[#1B6FF4]"
+                        />
+                      </div>
+                    )}
                   </div>
 
                   {/* Passengers + Vehicle row */}
@@ -421,7 +462,7 @@ export default function HomePage() {
       {/*  4. 어떤 목적으로 가시나요? (히어로 바로 아래)                       */}
       {/* ================================================================ */}
       <section className="bg-white py-14 md:py-20">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-2">
             어떤 목적으로 가시나요?
           </h2>
@@ -491,7 +532,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">
-              차량 안내
+              간편하고 저렴한 버스대절
             </h2>
             <p className="text-gray-600 mt-3 text-base sm:text-lg">
               12가지 차량 중 인원과 목적에 맞는 버스를 선택하세요
