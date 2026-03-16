@@ -185,10 +185,16 @@ export default function HomePage() {
                 </a>
               ))}
               <Link
-                href="/auth"
-                className="inline-flex items-center px-4 py-2 bg-[#1B6FF4] text-white text-sm font-semibold rounded-lg hover:bg-[#0B4FCC] transition-colors"
+                href="/auth?role=customer"
+                className="inline-flex items-center px-4 py-2 border-2 border-[#1B6FF4] text-[#1B6FF4] text-sm font-semibold rounded-lg hover:bg-[#1B6FF4] hover:text-white transition-colors"
               >
-                기사님 가입
+                일반 회원가입
+              </Link>
+              <Link
+                href="/auth?role=driver"
+                className="inline-flex items-center px-4 py-2 bg-[#FF6B35] text-white text-sm font-semibold rounded-lg hover:bg-[#E55A2B] transition-colors"
+              >
+                🚌 기사님 전용
               </Link>
             </div>
 
@@ -218,11 +224,18 @@ export default function HomePage() {
                 </a>
               ))}
               <Link
-                href="/auth"
-                className="block w-full text-center px-4 py-2.5 bg-[#1B6FF4] text-white font-semibold rounded-lg"
+                href="/auth?role=customer"
+                className="block w-full text-center px-4 py-2.5 border-2 border-[#1B6FF4] text-[#1B6FF4] font-semibold rounded-lg"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                기사님 가입
+                일반 회원가입
+              </Link>
+              <Link
+                href="/auth?role=driver"
+                className="block w-full text-center px-4 py-2.5 bg-[#FF6B35] text-white font-semibold rounded-lg"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                🚌 기사님 전용
               </Link>
             </div>
           </div>

@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
@@ -47,9 +47,11 @@ function translateAuthError(message: string): string {
   return message;
 }
 
-export default function AuthPage() {
+function AuthContent() {
   const router = useRouter();
-  const [tab, setTab] = useState<Tab>('login');
+  const searchParams = useSearchParams();
+  const initialRole = searchParams.get('role');
+  const [tab, setTab] = useState<Tab>(initialRole ? 'register' : 'login');
 
   // Login state
   const [loginEmail, setLoginEmail] = useState('');
@@ -64,7 +66,9 @@ export default function AuthPage() {
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
-  const [regRole, setRegRole] = useState<'customer' | 'driver' | 'pension_owner'>('customer');
+  const [regRole, setRegRole] = useState<'customer' | 'driver' | 'pension_owner'>(
+    initialRole === 'driver' ? 'driver' : initialRole === 'pension_owner' ? 'pension_owner' : 'customer'
+  );
   const [showRegPassword, setShowRegPassword] = useState(false);
   const [showRegConfirmPassword, setShowRegConfirmPassword] = useState(false);
   const [registerLoading, setRegisterLoading] = useState(false);
@@ -500,5 +504,13 @@ export default function AuthPage() {
         </div>
       </Card>
     </div>
+  );
+}
+
+export default function AuthPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1B6FF4]" /></div>}>
+      <AuthContent />
+    </Suspense>
   );
 }
