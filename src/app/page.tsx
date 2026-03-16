@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/Card';
@@ -124,6 +124,19 @@ export default function HomePage() {
   const [passengers, setPassengers] = useState('');
   const [vehicleType, setVehicleType] = useState('');
   const [purpose, setPurpose] = useState('');
+  const [showBottomCTA, setShowBottomCTA] = useState(false);
+
+  useEffect(() => {
+    function onScroll() {
+      const el = document.getElementById('benefits');
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        setShowBottomCTA(rect.top < window.innerHeight);
+      }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   function handleQuoteSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -494,7 +507,7 @@ export default function HomePage() {
       {/* ================================================================ */}
       {/*  4-2. 버스고만의 특별혜택                                          */}
       {/* ================================================================ */}
-      <section className="bg-[#F8FAFC] py-14 md:py-20">
+      <section id="benefits" className="bg-[#F8FAFC] py-14 md:py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-gray-500 text-sm mb-2">전국 어디에서나, 나와 딱 맞는 버스를 구해보세요!</p>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-10">
@@ -1035,7 +1048,7 @@ export default function HomePage() {
       {/* ================================================================ */}
       {/*  하단 고정 견적 신청 버튼                                          */}
       {/* ================================================================ */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.1)] px-4 py-3 md:py-4">
+      <div className={`fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.1)] px-4 py-3 md:py-4 transition-transform duration-300 ${showBottomCTA ? 'translate-y-0' : 'translate-y-full'}`}>
         <div className="max-w-2xl mx-auto">
           <button
             onClick={() => scrollTo('#quote-form')}
