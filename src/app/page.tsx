@@ -50,14 +50,15 @@ const vehicleTypes = [
 ];
 
 const useCases = [
-  { emoji: '💒', title: '결혼식 버스', desc: '하객 단체 이동을 한번에 해결', tag: '결혼식' },
-  { emoji: '🏢', title: '워크샵/MT', desc: '회사 워크샵, 대학 MT 전세버스', tag: '워크샵' },
-  { emoji: '🎵', title: '콘서트/페스티벌', desc: '공연장까지 단체 이동', tag: '콘서트' },
+  { emoji: '💒', title: '결혼식', desc: '하객 단체 이동을 한번에 해결', tag: '결혼식' },
+  { emoji: '🏢', title: '워크샵', desc: '회사 워크샵, 대학 MT 전세버스', tag: '워크샵' },
   { emoji: '⛰️', title: '산악회', desc: '등산 모임 정기 버스 대절', tag: '산악회' },
-  { emoji: '🎓', title: '동창회/동호회', desc: '모임 여행, 체육대회 이동', tag: '동창회' },
-  { emoji: '🏭', title: '통근셔틀', desc: '기업·공장 통근 정기 셔틀', tag: '통근' },
-  { emoji: '✈️', title: '관광/여행', desc: '국내 관광, 단체 여행 버스', tag: '관광' },
-  { emoji: '🎒', title: '학교/어린이집', desc: '소풍, 현장학습, 수학여행', tag: '학교' },
+  { emoji: '🎒', title: 'MT/학교', desc: '소풍, 현장학습, 수학여행', tag: '학교' },
+  { emoji: '🎵', title: '콘서트', desc: '공연장까지 단체 이동', tag: '콘서트' },
+  { emoji: '⛳', title: '골프', desc: '골프장 단체 이동 전세버스', tag: '골프' },
+  { emoji: '🐟', title: '낚시', desc: '낚시터, 바다낚시 단체 이동', tag: '낚시' },
+  { emoji: '🏭', title: '통근/셔틀', desc: '기업·공장 통근 정기 셔틀', tag: '통근' },
+  { emoji: '🏠', title: '어린이집', desc: '유치원, 어린이집 통원 셔틀', tag: '어린이집' },
 ];
 
 const packages = [
@@ -104,13 +105,12 @@ const navLinks = [
   { label: '견적신청', href: '#hero' },
   { label: '차량안내', href: '#vehicles' },
   { label: '이용방법', href: '#how-it-works' },
-  { label: '이용사례', href: '#use-cases' },
   { label: '후기', href: '#reviews' },
   { label: 'FAQ', href: '#faq' },
 ];
 
 const purposeOptions = [
-  '결혼식', '워크샵/MT', '콘서트/페스티벌', '산악회', '동창회/동호회', '통근셔틀', '관광/여행', '학교/어린이집', '기타',
+  '결혼식', '워크샵', '산악회', '학교', '콘서트', '골프', '낚시', '통근', '어린이집', '기타',
 ];
 
 /* ------------------------------------------------------------------ */
@@ -263,26 +263,9 @@ export default function HomePage() {
                 <br />
                 <span className="text-yellow-300">최저가</span> 비교
               </h1>
-              <p className="text-blue-100 text-base sm:text-lg mb-10 max-w-lg mx-auto lg:mx-0">
+              <p className="text-blue-100 text-base sm:text-lg mb-6 max-w-lg mx-auto lg:mx-0">
                 한번의 견적으로 최대 20개 비교 · 타사대비 25% 저렴
               </p>
-
-              {/* 3 stat badges */}
-              <div className="grid grid-cols-3 gap-4 max-w-md mx-auto lg:mx-0">
-                {[
-                  { value: '25%', label: '타사대비 저렴', color: 'bg-yellow-400/20' },
-                  { value: '3분', label: '최대 20개 견적', color: 'bg-green-400/20' },
-                  { value: '4.9점', label: '기사님 평균 평점', color: 'bg-purple-400/20' },
-                ].map((s) => (
-                  <div
-                    key={s.label}
-                    className={`${s.color} backdrop-blur-sm rounded-xl px-4 py-4 text-center`}
-                  >
-                    <p className="text-2xl sm:text-3xl font-extrabold">{s.value}</p>
-                    <p className="text-xs sm:text-sm text-blue-100 mt-1">{s.label}</p>
-                  </div>
-                ))}
-              </div>
             </div>
 
             {/* Right side: Quote Form */}
@@ -431,22 +414,31 @@ export default function HomePage() {
       </section>
 
       {/* ================================================================ */}
-      {/*  4. Phone Consultation Bar                                       */}
+      {/*  4. 어떤 목적으로 가시나요? (히어로 바로 아래)                       */}
       {/* ================================================================ */}
-      <section className="bg-[#0B4FCC] text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 text-center">
-            <span className="text-sm sm:text-base font-medium">빠른 상담이 필요하세요?</span>
-            <a
-              href="tel:1588-5252"
-              className="inline-flex items-center gap-2 text-lg sm:text-xl font-extrabold hover:text-yellow-300 transition-colors"
-            >
-              <Phone className="w-5 h-5" />
-              1588-5252
-            </a>
-            <span className="text-sm text-blue-200 flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5" /> 상담시간 09:00~18:00 (평일)
-            </span>
+      <section className="bg-white py-14 md:py-20">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-2">
+            어떤 목적으로 가시나요?
+          </h2>
+          <p className="text-gray-500 mb-10">원하시는 목적을 선택해주세요!</p>
+
+          <div className="grid grid-cols-3 gap-4 sm:gap-6">
+            {useCases.map((uc) => (
+              <button
+                key={uc.tag}
+                onClick={() => {
+                  setPurpose(uc.tag);
+                  scrollTo('hero');
+                }}
+                className="flex flex-col items-center gap-3 p-5 sm:p-6 bg-white border border-gray-200 rounded-2xl hover:border-[#1B6FF4] hover:shadow-lg transition-all cursor-pointer group"
+              >
+                <div className="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center rounded-2xl bg-gray-50 group-hover:bg-[#E8F1FE] transition-colors">
+                  <span className="text-3xl sm:text-4xl">{uc.emoji}</span>
+                </div>
+                <span className="text-sm sm:text-base font-semibold text-gray-800">{uc.title}</span>
+              </button>
+            ))}
           </div>
         </div>
       </section>
@@ -511,42 +503,6 @@ export default function HomePage() {
                   <p className="text-xs text-gray-500 mt-1">{vt.seats}</p>
                   <p className="text-sm font-extrabold text-[#1B6FF4] mt-2">{vt.price}</p>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ================================================================ */}
-      {/*  7. Use Cases (이용 사례)                                         */}
-      {/* ================================================================ */}
-      <section id="use-cases" className="bg-white py-16 md:py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">
-              이용 사례
-            </h2>
-            <p className="text-gray-600 mt-3 text-base sm:text-lg">
-              다양한 목적에 맞는 전세버스 서비스를 제공합니다
-            </p>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {useCases.map((uc) => (
-              <div
-                key={uc.title}
-                className="bg-[#F8FAFC] rounded-xl border border-gray-100 p-6 text-center hover:border-[#1B6FF4] hover:shadow-md transition-all group cursor-pointer"
-              >
-                <div className="text-4xl mb-3">{uc.emoji}</div>
-                <h3 className="font-bold text-gray-900 text-base mb-2 group-hover:text-[#1B6FF4] transition-colors">
-                  {uc.title}
-                </h3>
-                <p className="text-sm text-gray-500 mb-4 leading-relaxed">{uc.desc}</p>
-                <Link
-                  href={`/customer/quote-request?purpose=${encodeURIComponent(uc.tag)}`}
-                  className="inline-flex items-center text-sm font-semibold text-[#1B6FF4] hover:underline"
-                >
-                  견적 받기 <ChevronRight className="w-4 h-4" />
-                </Link>
               </div>
             ))}
           </div>
