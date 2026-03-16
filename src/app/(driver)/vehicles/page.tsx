@@ -154,43 +154,76 @@ export default function VehiclesPage() {
     );
   };
 
-  const handleSubmitForm = () => {
+  const handleSubmitForm = async () => {
     if (editingId) {
-      setVehicles((prev) =>
-        prev.map((v) =>
-          v.id === editingId
-            ? {
-                ...v,
-                vehicle_type: formType as Vehicle['vehicle_type'],
-                vehicle_name: formName,
-                plate_number: formPlate,
-                year: Number(formYear),
-                seats: Number(formSeats),
-                options: formOptions,
-              }
-            : v
-        )
-      );
-    } else {
-      const newVehicle: Vehicle = {
-        id: `vehicle-${Date.now()}`,
-        driver_id: 'driver-001',
-        vehicle_type: formType as Vehicle['vehicle_type'],
+      const updates = {
+        vehicle_type: formType,
         vehicle_name: formName,
         plate_number: formPlate,
         year: Number(formYear),
         seats: Number(formSeats),
-        photos: [],
+        options: formOptions,
+      };
+      setVehicles((prev) =>
+        prev.map((v) =>
+          v.id === editingId
+            ? { ...v, ...updates, vehicle_type: formType as Vehicle['vehicle_type'] }
+            : v
+        )
+      );
+      if (isLoggedIn) {
+        try {
+          await updateVehicle(editingId, updates);
+        } catch (err) {
+          console.error('차량 수정 실패:', err);
+        }
+      }
+    } else {
+      const vehicleData = {
+        driver_id: driverId || 'driver-001',
+        vehicle_type: formType,
+        vehicle_name: formName,
+        plate_number: formPlate,
+        year: Number(formYear),
+        seats: Number(formSeats),
+        photos: [] as string[],
         options: formOptions,
         is_active: true,
       };
-      setVehicles((prev) => [...prev, newVehicle]);
+
+      if (isLoggedIn && driverId) {
+        try {
+          const { data, error } = await createVehicle(vehicleData);
+          if (error) throw error;
+          if (data) {
+            setVehicles((prev) => [...prev, data as Vehicle]);
+          }
+        } catch (err) {
+          console.error('차량 등록 실패:', err);
+          alert('차량 등록 중 오류가 발생했습니다.');
+        }
+      } else {
+        const newVehicle: Vehicle = {
+          id: `vehicle-${Date.now()}`,
+          ...vehicleData,
+          vehicle_type: formType as Vehicle['vehicle_type'],
+        };
+        setVehicles((prev) => [...prev, newVehicle]);
+      }
     }
     setModalOpen(false);
     resetForm();
   };
 
   const photoColors = ['bg-green-100', 'bg-blue-100', 'bg-yellow-100', 'bg-purple-100', 'bg-pink-100'];
+
+  if (loading || authLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-green-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="px-4 sm:px-6">

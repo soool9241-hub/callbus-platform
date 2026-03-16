@@ -168,11 +168,11 @@ export default function SettlementsPage() {
   const tripCount = 5;
 
   return (
-    <div>
+    <div className="px-4 sm:px-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <h1 className="text-2xl font-bold text-gray-900">정산 내역</h1>
-        <div className="w-48">
+        <div className="w-full sm:w-48">
           <Select
             options={monthOptions}
             value={selectedMonth}
@@ -182,7 +182,7 @@ export default function SettlementsPage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <Card hover>
           <div className="p-5">
             <div className="flex items-center justify-between mb-3">
@@ -191,7 +191,7 @@ export default function SettlementsPage() {
               </div>
               <ArrowUpRight className="w-4 h-4 text-green-500" />
             </div>
-            <p className="text-sm text-gray-500 mb-1">이번 달 총 매출</p>
+            <p className="text-sm text-gray-600 mb-1">이번 달 총 매출</p>
             <p className="text-2xl font-bold text-gray-900">
               {formatCurrency(totalRevenue)}<span className="text-base font-normal text-gray-500">원</span>
             </p>
@@ -206,7 +206,7 @@ export default function SettlementsPage() {
               </div>
               <ArrowDownRight className="w-4 h-4 text-red-500" />
             </div>
-            <p className="text-sm text-gray-500 mb-1">수수료 (10%)</p>
+            <p className="text-sm text-gray-600 mb-1">수수료 (10%)</p>
             <p className="text-2xl font-bold text-gray-900">
               {formatCurrency(platformFee)}<span className="text-base font-normal text-gray-500">원</span>
             </p>
@@ -220,7 +220,7 @@ export default function SettlementsPage() {
                 <Wallet className="w-5 h-5 text-blue-600" />
               </div>
             </div>
-            <p className="text-sm text-gray-500 mb-1">정산 예정액</p>
+            <p className="text-sm text-gray-600 mb-1">정산 예정액</p>
             <p className="text-2xl font-bold text-green-600">
               {formatCurrency(netAmount)}<span className="text-base font-normal text-gray-500">원</span>
             </p>
@@ -234,7 +234,7 @@ export default function SettlementsPage() {
                 <Truck className="w-5 h-5 text-purple-600" />
               </div>
             </div>
-            <p className="text-sm text-gray-500 mb-1">운행 건수</p>
+            <p className="text-sm text-gray-600 mb-1">운행 건수</p>
             <p className="text-2xl font-bold text-gray-900">
               {tripCount}<span className="text-base font-normal text-gray-500">건</span>
             </p>
@@ -339,11 +339,11 @@ export default function SettlementsPage() {
             {trips.map((trip) => (
               <div
                 key={trip.id}
-                className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors gap-2"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-sm font-medium text-gray-500">
+                    <span className="text-sm font-medium text-gray-600">
                       {formatDate(trip.date)}
                     </span>
                     {getTripStatusBadge(trip.status)}
@@ -355,7 +355,7 @@ export default function SettlementsPage() {
                     고객: {trip.customerName}
                   </p>
                 </div>
-                <div className="text-right ml-4 shrink-0">
+                <div className="text-right sm:ml-4 shrink-0">
                   <p className="text-base font-semibold text-gray-900">
                     {formatCurrency(trip.amount)}원
                   </p>

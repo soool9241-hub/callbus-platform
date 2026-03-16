@@ -32,7 +32,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           ref={ref}
           id={selectId}
           className={`
-            block w-full appearance-none rounded-lg border bg-white px-3.5 py-2.5 pr-10 text-sm text-gray-900
+            block w-full appearance-none rounded-lg border bg-white px-3.5 py-3 pr-10 text-sm text-gray-900 min-h-[44px]
             transition-colors duration-150
             focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20
             disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500

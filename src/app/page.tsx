@@ -1,12 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { mockReviews } from '@/lib/mock-data';
+import { useAuth } from '@/hooks/useAuth';
+import { getReviews } from '@/lib/supabase-db';
+import type { Review } from '@/types';
 import {
   Bus,
   MapPin,
@@ -74,7 +77,23 @@ const reviewerNames: Record<string, string> = {
 };
 
 export default function HomePage() {
-  const sampleReviews = mockReviews.slice(0, 3);
+  const { isLoggedIn } = useAuth();
+  const [sampleReviews, setSampleReviews] = useState<Review[]>(mockReviews.slice(0, 3));
+
+  useEffect(() => {
+    async function fetchReviews() {
+      try {
+        const { data, error } = await getReviews();
+        if (!error && data && data.length > 0) {
+          setSampleReviews(data.slice(0, 3) as Review[]);
+        }
+      } catch {
+        // Fall back to mock data (already set as default)
+      }
+    }
+
+    fetchReviews();
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -222,11 +241,11 @@ export default function HomePage() {
                 <p className="text-gray-700 text-sm sm:text-base leading-relaxed line-clamp-3">{review.content}</p>
                 <div className="flex items-center gap-2 mt-auto pt-3 border-t border-gray-100">
                   <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-xs font-bold">
-                    {(reviewerNames[review.customer_id] || '고객')[0]}
+                    {((review as any).profiles?.name || reviewerNames[review.customer_id] || '고객')[0]}
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-900">
-                      {reviewerNames[review.customer_id] || '고객'}
+                      {(review as any).profiles?.name || reviewerNames[review.customer_id] || '고객'}
                     </p>
                     <p className="text-xs text-gray-500">
                       {new Date(review.created_at).toLocaleDateString('ko-KR')}
