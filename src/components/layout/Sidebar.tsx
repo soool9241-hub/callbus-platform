@@ -12,6 +12,17 @@ import {
   Settings,
   Menu,
   X,
+  Home,
+  Package,
+  Bus,
+  Star,
+  Ticket,
+  TrendingUp,
+  Megaphone,
+  CreditCard,
+  Building,
+  Headphones,
+  UserCheck,
 } from 'lucide-react';
 
 interface NavItem {
@@ -20,13 +31,53 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
 }
 
-const navItems: NavItem[] = [
-  { label: '대시보드', href: '/admin/dashboard', icon: LayoutDashboard },
-  { label: '회원관리', href: '/admin/members', icon: Users },
-  { label: '견적관리', href: '/admin/quotes', icon: FileText },
-  { label: '예약관리', href: '/admin/reservations', icon: Calendar },
-  { label: '정산관리', href: '/admin/settlements', icon: Wallet },
-  { label: '설정', href: '/admin/settings', icon: Settings },
+interface NavSection {
+  title?: string;
+  items: NavItem[];
+}
+
+const navSections: NavSection[] = [
+  {
+    items: [
+      { label: '대시보드', href: '/admin/dashboard', icon: LayoutDashboard },
+      { label: '회원관리', href: '/admin/members', icon: Users },
+      { label: '견적관리', href: '/admin/quotes', icon: FileText },
+      { label: '예약관리', href: '/admin/reservations', icon: Calendar },
+      { label: '정산관리', href: '/admin/settlements', icon: Wallet },
+      { label: '설정', href: '/admin/settings', icon: Settings },
+    ],
+  },
+  {
+    title: '펜션 관리',
+    items: [
+      { label: '펜션 목록', href: '/admin/pensions', icon: Home },
+      { label: '패키지 심사', href: '/admin/packages', icon: Package },
+      { label: '셔틀 관리', href: '/admin/shuttles', icon: Bus },
+    ],
+  },
+  {
+    title: '콘텐츠',
+    items: [
+      { label: '리뷰 관리', href: '/admin/reviews', icon: Star },
+      { label: '쿠폰/프로모션', href: '/admin/coupons', icon: Ticket },
+      { label: '공지사항/FAQ', href: '/admin/notices', icon: Megaphone },
+    ],
+  },
+  {
+    title: '운영',
+    items: [
+      { label: '결제 내역', href: '/admin/payments', icon: CreditCard },
+      { label: '펜션 정산', href: '/admin/pension-settlements', icon: Building },
+      { label: 'CS 관리', href: '/admin/cs', icon: Headphones },
+      { label: '매니저 배정', href: '/admin/managers', icon: UserCheck },
+    ],
+  },
+  {
+    title: '분석',
+    items: [
+      { label: '통계/분석', href: '/admin/analytics', icon: TrendingUp },
+    ],
+  },
 ];
 
 export default function Sidebar() {
@@ -54,26 +105,37 @@ export default function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        {navItems.map((item) => {
-          const active = isActive(item.href);
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setMobileOpen(false)}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                active
-                  ? 'bg-blue-50 text-blue-700'
-                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-              }`}
-            >
-              <Icon className={`w-5 h-5 ${active ? 'text-blue-600' : 'text-gray-400'}`} />
-              {item.label}
-            </Link>
-          );
-        })}
+      <nav className="flex-1 px-3 py-4 space-y-4 overflow-y-auto">
+        {navSections.map((section, sIdx) => (
+          <div key={sIdx}>
+            {section.title && (
+              <p className="px-3 mb-1 text-xs font-semibold uppercase tracking-wider text-gray-400">
+                {section.title}
+              </p>
+            )}
+            <div className="space-y-1">
+              {section.items.map((item) => {
+                const active = isActive(item.href);
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMobileOpen(false)}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                      active
+                        ? 'bg-blue-50 text-blue-700'
+                        : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                    }`}
+                  >
+                    <Icon className={`w-5 h-5 ${active ? 'text-blue-600' : 'text-gray-400'}`} />
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
 
       {/* Footer */}

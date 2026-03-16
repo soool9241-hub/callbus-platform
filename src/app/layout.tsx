@@ -1,22 +1,11 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from '@/components/AuthProvider';
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-  title: "콜버스 - 전세버스 대절 가격비교 플랫폼",
-  description: "한 번의 신청으로 여러 버스 기사의 견적을 비교하고 최저가로 예약하세요. 전세버스, 관광버스, 통근버스 대절 서비스.",
+  title: "버스고 | 버스대절 최저가 비교 + 펜션 패키지",
+  description: "전세버스 대절 가격비교부터 펜션+버스 패키지까지. 전국 기사님 견적 비교, 24시간 무료취소, 안심 예약 보장.",
   keywords: "전세버스, 대형버스, 관광버스, 통근버스, 버스대절, 가격비교",
 };
 
@@ -28,7 +17,7 @@ export default function RootLayout({
   return (
     <html lang="ko" className="scroll-smooth">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased text-sm md:text-base`}
+        className="font-[Pretendard] antialiased text-sm md:text-base"
       >
         <AuthProvider>
           {children}

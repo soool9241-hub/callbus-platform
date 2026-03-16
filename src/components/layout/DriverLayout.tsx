@@ -2,24 +2,44 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { Menu, X, Bell, User, ChevronDown } from 'lucide-react';
+import {
+  Menu,
+  X,
+  Bell,
+  User,
+  ChevronDown,
+  LayoutDashboard,
+  FileText,
+  Calendar,
+  CalendarDays,
+  Truck,
+  Wallet,
+  Star,
+  MessageSquare,
+} from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import Footer from './Footer';
 
-type Role = 'customer' | 'driver' | 'admin';
+type Role = 'customer' | 'driver' | 'admin' | 'pension_owner';
 
 const roleLabels: Record<Role, string> = {
   customer: '고객',
   driver: '기사',
   admin: '관리자',
+  pension_owner: '펜션사업자',
 };
 
 const driverNavItems = [
-  { label: '견적요청', href: '/dashboard' },
-  { label: '견적제출', href: '/quote-submit' },
-  { label: '차량관리', href: '/vehicles' },
-  { label: '정산', href: '/settlements' },
-  { label: '마이페이지', href: '/mypage' },
+  { label: '홈', href: '/dashboard', icon: LayoutDashboard },
+  { label: '견적 제출', href: '/quote-submit', icon: FileText },
+  { label: '내 예약', href: '/reservations', icon: Calendar },
+  { label: '일정 관리', href: '/schedule', icon: CalendarDays },
+  { label: '차량 관리', href: '/vehicles', icon: Truck },
+  { label: '정산', href: '/settlements', icon: Wallet },
+  { label: '리뷰', href: '/reviews', icon: Star },
+  { label: '채팅', href: '/chat', icon: MessageSquare },
+  { label: '알림', href: '/notifications', icon: Bell },
+  { label: '마이페이지', href: '/mypage', icon: User },
 ];
 
 interface DriverLayoutProps {
@@ -56,16 +76,20 @@ export default function DriverLayout({ children }: DriverLayoutProps) {
             </Link>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-6">
-              {driverNavItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
-                >
-                  {item.label}
-                </Link>
-              ))}
+            <nav className="hidden md:flex items-center gap-1">
+              {driverNavItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="flex items-center gap-1 px-2.5 py-1.5 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg font-medium transition-colors"
+                  >
+                    <Icon className="w-4 h-4" />
+                    {item.label}
+                  </Link>
+                );
+              })}
             </nav>
 
             {/* Right side actions */}
@@ -142,16 +166,20 @@ export default function DriverLayout({ children }: DriverLayoutProps) {
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-gray-100 bg-white">
             <div className="px-4 py-3 space-y-1">
-              {driverNavItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
-                >
-                  {item.label}
-                </Link>
-              ))}
+              {driverNavItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-3 px-3 py-2 text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+                  >
+                    <Icon className="w-5 h-5" />
+                    {item.label}
+                  </Link>
+                );
+              })}
               {/* Mobile role switcher */}
               <div className="pt-3 border-t border-gray-100">
                 <p className="px-3 py-1 text-xs font-semibold text-gray-400 uppercase">뷰 전환</p>

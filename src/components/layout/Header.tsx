@@ -8,12 +8,13 @@ import { useStore } from '@/store/useStore';
 import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
 
-type Role = 'customer' | 'driver' | 'admin';
+type Role = 'customer' | 'driver' | 'admin' | 'pension_owner';
 
 const roleLabels: Record<Role, string> = {
   customer: '고객',
   driver: '기사',
   admin: '관리자',
+  pension_owner: '펜션사업주',
 };
 
 const customerNavItems = [
@@ -30,6 +31,13 @@ const driverNavItems = [
   { label: '마이페이지', href: '/mypage' },
 ];
 
+const pensionNavItems = [
+  { label: '대시보드', href: '/pension/dashboard' },
+  { label: '펜션 관리', href: '/pension/pensions' },
+  { label: '패키지', href: '/pension/packages' },
+  { label: '정산', href: '/pension/settlements' },
+];
+
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
@@ -39,9 +47,19 @@ export default function Header() {
   const router = useRouter();
   const { currentRole, setCurrentRole, currentUser, setCurrentUser, unreadCount } = useStore();
 
-  const roles: Role[] = ['customer', 'driver', 'admin'];
-  const navItems = currentRole === 'driver' ? driverNavItems : customerNavItems;
-  const accentColor = currentRole === 'driver' ? 'text-green-600' : 'text-blue-600';
+  const roles: Role[] = ['customer', 'driver', 'pension_owner', 'admin'];
+  const navItems =
+    currentRole === 'driver'
+      ? driverNavItems
+      : currentRole === 'pension_owner'
+        ? pensionNavItems
+        : customerNavItems;
+  const accentColor =
+    currentRole === 'driver'
+      ? 'text-green-600'
+      : currentRole === 'pension_owner'
+        ? 'text-amber-600'
+        : 'text-blue-600';
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {

@@ -5,8 +5,8 @@ import { persist } from 'zustand/middleware'
 interface AppState {
   currentUser: any | null
   setCurrentUser: (user: any | null) => void
-  currentRole: 'customer' | 'driver' | 'admin'
-  setCurrentRole: (role: 'customer' | 'driver' | 'admin') => void
+  currentRole: 'customer' | 'driver' | 'admin' | 'pension_owner'
+  setCurrentRole: (role: 'customer' | 'driver' | 'admin' | 'pension_owner') => void
   notifications: any[]
   unreadCount: number
   setNotifications: (notifications: any[]) => void

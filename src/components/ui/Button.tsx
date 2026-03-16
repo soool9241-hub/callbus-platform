@@ -5,7 +5,9 @@ import { Spinner } from './Spinner';
 
 const variantClasses = {
   primary:
-    'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 focus-visible:ring-blue-500',
+    'bg-[#1B6FF4] text-white hover:bg-[#0B4FCC] active:bg-[#0940A8] focus-visible:ring-[#1B6FF4]',
+  accent:
+    'bg-[#FF6B35] text-white hover:bg-[#E55A2B] active:bg-[#CC4F25] focus-visible:ring-[#FF6B35]',
   secondary:
     'bg-gray-200 text-gray-900 hover:bg-gray-300 active:bg-gray-400 focus-visible:ring-gray-400',
   danger:

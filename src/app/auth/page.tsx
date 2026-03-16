@@ -14,6 +14,7 @@ import {
   Mail,
   Eye,
   EyeOff,
+  Home,
 } from 'lucide-react';
 
 type Tab = 'login' | 'register';
@@ -63,7 +64,7 @@ export default function AuthPage() {
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
-  const [regRole, setRegRole] = useState<'customer' | 'driver'>('customer');
+  const [regRole, setRegRole] = useState<'customer' | 'driver' | 'pension_owner'>('customer');
   const [showRegPassword, setShowRegPassword] = useState(false);
   const [showRegConfirmPassword, setShowRegConfirmPassword] = useState(false);
   const [registerLoading, setRegisterLoading] = useState(false);
@@ -432,7 +433,7 @@ export default function AuthPage() {
                     <label className="mb-1.5 block text-sm font-medium text-gray-700">
                       가입 유형
                     </label>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-3 gap-3">
                       <button
                         onClick={() => setRegRole('customer')}
                         className={`p-4 rounded-lg border-2 text-center transition-colors ${
@@ -442,7 +443,7 @@ export default function AuthPage() {
                         }`}
                       >
                         <User className="w-6 h-6 mx-auto mb-1" />
-                        <span className="text-sm font-medium">고객</span>
+                        <span className="text-sm font-medium">일반회원</span>
                         <p className="text-xs text-gray-400 mt-0.5">버스 이용</p>
                       </button>
                       <button
@@ -458,6 +459,18 @@ export default function AuthPage() {
                         </svg>
                         <span className="text-sm font-medium">기사</span>
                         <p className="text-xs text-gray-400 mt-0.5">버스 운행</p>
+                      </button>
+                      <button
+                        onClick={() => setRegRole('pension_owner')}
+                        className={`p-4 rounded-lg border-2 text-center transition-colors ${
+                          regRole === 'pension_owner'
+                            ? 'border-amber-500 bg-amber-50 text-amber-700'
+                            : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                        }`}
+                      >
+                        <Home className="w-6 h-6 mx-auto mb-1" />
+                        <span className="text-sm font-medium">펜션사업주</span>
+                        <p className="text-xs text-gray-400 mt-0.5">펜션 운영</p>
                       </button>
                     </div>
                   </div>

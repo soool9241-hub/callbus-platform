@@ -5,7 +5,7 @@
 // ---------------------- 사용자 ----------------------
 export interface User {
   id: string;
-  role: 'customer' | 'driver' | 'admin';
+  role: 'customer' | 'driver' | 'admin' | 'pension_owner';
   name: string;
   phone: string;
   email: string;
@@ -140,13 +140,13 @@ export interface Payment {
   reservation_id: string;
   payment_type: 'deposit' | 'remaining' | 'refund';
   amount: number;
-  method: string;
-  pg_provider: string;
-  pg_payment_key: string;
-  pg_order_id: string;
-  pg_receipt_url: string | null;
+  method?: string;
+  pg_provider?: string;
+  pg_payment_key?: string;
+  pg_order_id?: string;
+  pg_receipt_url?: string | null;
   status: 'pending' | 'completed' | 'failed' | 'cancelled' | 'refunded';
-  paid_at: string | null;
+  paid_at?: string;
   created_at: string;
 }
 
@@ -162,7 +162,8 @@ export interface Settlement {
   net_amount: number;
   trip_count: number;
   status: 'pending' | 'confirmed' | 'paid' | 'disputed';
-  paid_at: string | null;
+  paid_at?: string;
+  created_at: string;
 }
 
 // ---------------------- 리뷰 ----------------------
@@ -212,6 +213,162 @@ export interface Notification {
   data: any;
   is_read: boolean;
   created_at: string;
+}
+
+// ---------------------- 펜션 사업자 ----------------------
+export interface PensionOwner {
+  id: string;
+  user_id: string;
+  business_name: string;
+  business_number: string;
+  accommodation_license?: string;
+  representative_name: string;
+  phone: string;
+  approval_status: 'pending' | 'approved' | 'rejected';
+  bank_name?: string;
+  bank_account?: string;
+  bank_holder?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// ---------------------- 펜션 ----------------------
+export interface Pension {
+  id: string;
+  owner_id: string;
+  name: string;
+  description: string;
+  address: string;
+  latitude?: number;
+  longitude?: number;
+  region: string;
+  photos: string[];
+  amenities: string[];
+  room_count: number;
+  max_capacity: number;
+  check_in_time: string;
+  check_out_time: string;
+  price_per_night: number;
+  is_active: boolean;
+  rating: number;
+  review_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// ---------------------- 패키지 ----------------------
+export interface Package {
+  id: string;
+  pension_id: string;
+  pension?: Pension;
+  name: string;
+  description: string;
+  photos: string[];
+  region: string;
+  trip_type: 'one_way' | 'round';
+  duration: string;
+  vehicle_type: string;
+  min_passengers: number;
+  max_passengers: number;
+  price_per_person: number;
+  pension_cost: number;
+  bus_cost: number;
+  platform_margin: number;
+  total_price: number;
+  includes: string[];
+  excludes: string[];
+  season_start?: string;
+  season_end?: string;
+  status: 'draft' | 'pending' | 'approved' | 'rejected' | 'active' | 'inactive';
+  created_at: string;
+  updated_at: string;
+}
+
+// ---------------------- 셔틀 노선 ----------------------
+export interface ShuttleRoute {
+  id: string;
+  pension_id: string;
+  pension?: Pension;
+  name: string;
+  departure_address: string;
+  destination_address: string;
+  schedule: string;
+  vehicle_type: string;
+  total_seats: number;
+  price_per_seat: number;
+  driver_id?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// ---------------------- 셔틀 예약 ----------------------
+export interface ShuttleBooking {
+  id: string;
+  route_id: string;
+  route?: ShuttleRoute;
+  customer_id: string;
+  booking_date: string;
+  seats: number;
+  total_price: number;
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  created_at: string;
+}
+
+// ---------------------- 펜션 정산 ----------------------
+export interface PensionSettlement {
+  id: string;
+  pension_owner_id: string;
+  period_start: string;
+  period_end: string;
+  package_revenue: number;
+  shuttle_revenue: number;
+  referral_revenue: number;
+  total_revenue: number;
+  platform_fee: number;
+  net_amount: number;
+  status: 'pending' | 'confirmed' | 'paid';
+  created_at: string;
+}
+
+// ---------------------- 가격 동향 ----------------------
+export interface PriceTrend {
+  id: string;
+  departure_region: string;
+  destination_region: string;
+  vehicle_type: string;
+  avg_price: number;
+  min_price: number;
+  max_price: number;
+  sample_count: number;
+  period: string;
+  created_at: string;
+}
+
+// ---------------------- 쿠폰 ----------------------
+export interface Coupon {
+  id: string;
+  code: string;
+  name: string;
+  discount_type: 'fixed' | 'percent';
+  discount_value: number;
+  min_order_amount: number;
+  max_discount?: number;
+  valid_from?: string;
+  valid_until?: string;
+  max_usage?: number;
+  used_count: number;
+  is_active: boolean;
+  created_at: string;
+}
+
+// ---------------------- 매니저 배정 ----------------------
+export interface ManagerAssignment {
+  id: string;
+  reservation_id: string;
+  manager_id: string;
+  assigned_at: string;
+  status: 'active' | 'completed';
 }
 
 // ============================================================
@@ -284,3 +441,33 @@ export const RESERVATION_STATUSES: ReservationStatusInfo[] = [
   { key: 'cancelled', label: '취소됨', color: 'red' },
   { key: 'refunded', label: '환불 완료', color: 'orange' },
 ];
+
+/** 펜션 편의시설 목록 */
+export const PENSION_AMENITIES = ['바베큐', '수영장', '노래방', '족구장', '와이파이', '주차장', '에어컨', '난방', '취사가능', '세미나실'] as const;
+
+/** 패키지 상태 (한국어 라벨) */
+export const PACKAGE_STATUSES: Record<string, string> = {
+  draft: '초안',
+  pending: '심사중',
+  approved: '승인',
+  rejected: '반려',
+  active: '판매중',
+  inactive: '판매중지',
+};
+
+/** 셔틀 상태 (한국어 라벨) */
+export const SHUTTLE_STATUSES: Record<string, string> = {
+  pending: '대기중',
+  confirmed: '확정',
+  cancelled: '취소',
+  completed: '완료',
+};
+
+/** 결제 수단 (한국어 라벨) */
+export const PAYMENT_METHODS: Record<string, string> = {
+  card: '신용카드',
+  kakao_pay: '카카오페이',
+  naver_pay: '네이버페이',
+  toss_pay: '토스페이',
+  bank_transfer: '계좌이체',
+};
