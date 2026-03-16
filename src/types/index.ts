@@ -1,0 +1,286 @@
+// ============================================================
+// 콜버스 플랫폼 - 타입 정의
+// ============================================================
+
+// ---------------------- 사용자 ----------------------
+export interface User {
+  id: string;
+  role: 'customer' | 'driver' | 'admin';
+  name: string;
+  phone: string;
+  email: string;
+  profile_image: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+// ---------------------- 기사 ----------------------
+export interface Driver {
+  id: string;
+  user_id: string;
+  company_name: string;
+  business_number: string;
+  license_type: string;
+  license_number: string;
+  region: string[];
+  rating: number;
+  review_count: number;
+  total_trips: number;
+  approval_status: 'pending' | 'approved' | 'rejected';
+  bank_name: string;
+  bank_account: string;
+  bank_holder: string;
+}
+
+// ---------------------- 차량 ----------------------
+export type VehicleTypeKey =
+  | 'minivan_15'
+  | 'bus_25'
+  | 'bus_45'
+  | 'limousine'
+  | 'premium'
+  | 'solati'
+  | 'sprinter';
+
+export interface Vehicle {
+  id: string;
+  driver_id: string;
+  vehicle_type: VehicleTypeKey;
+  vehicle_name: string;
+  plate_number: string;
+  seats: number;
+  year: number;
+  photos: string[];
+  options: string[];
+  is_active: boolean;
+}
+
+// ---------------------- 견적 요청 ----------------------
+export interface Waypoint {
+  address: string;
+  lat: number;
+  lng: number;
+  order: number;
+}
+
+export interface QuoteRequest {
+  id: string;
+  customer_id: string;
+  request_number: string;
+  departure_address: string;
+  departure_lat: number;
+  departure_lng: number;
+  destination_address: string;
+  destination_lat: number;
+  destination_lng: number;
+  waypoints: Waypoint[] | null;
+  departure_datetime: string;
+  return_datetime: string | null;
+  trip_type: 'one_way' | 'round';
+  passenger_count: number;
+  vehicle_type: string[];
+  purpose: string;
+  special_requests: string | null;
+  contact_phone: string;
+  status: 'open' | 'in_progress' | 'reserved' | 'completed' | 'cancelled' | 'expired';
+  quote_count: number;
+  expires_at: string;
+  created_at: string;
+}
+
+// ---------------------- 견적 ----------------------
+export interface Quote {
+  id: string;
+  request_id: string;
+  driver_id: string;
+  vehicle_id: string;
+  base_price: number;
+  toll_fee: number;
+  meal_fee: number;
+  parking_fee: number;
+  extra_fees: number;
+  total_price: number;
+  vat_included: boolean;
+  message: string;
+  status: 'submitted' | 'selected' | 'rejected' | 'expired';
+  created_at: string;
+  // 조인 시 포함
+  driver?: Driver;
+  vehicle?: Vehicle;
+}
+
+// ---------------------- 예약 ----------------------
+export interface Reservation {
+  id: string;
+  reservation_number: string;
+  quote_id: string;
+  customer_id: string;
+  driver_id: string;
+  total_amount: number;
+  deposit_amount: number;
+  deposit_rate: number;
+  remaining_amount: number;
+  status:
+    | 'pending_payment'
+    | 'deposit_paid'
+    | 'confirmed'
+    | 'in_progress'
+    | 'completed'
+    | 'cancelled'
+    | 'refunded';
+  driver_deposit: number;
+  cancellation_reason: string | null;
+  cancelled_by: string | null;
+  created_at: string;
+}
+
+// ---------------------- 결제 ----------------------
+export interface Payment {
+  id: string;
+  reservation_id: string;
+  payment_type: 'deposit' | 'remaining' | 'refund';
+  amount: number;
+  method: string;
+  pg_provider: string;
+  pg_payment_key: string;
+  pg_order_id: string;
+  pg_receipt_url: string | null;
+  status: 'pending' | 'completed' | 'failed' | 'cancelled' | 'refunded';
+  paid_at: string | null;
+  created_at: string;
+}
+
+// ---------------------- 정산 ----------------------
+export interface Settlement {
+  id: string;
+  driver_id: string;
+  period_start: string;
+  period_end: string;
+  total_revenue: number;
+  platform_fee: number;
+  fee_rate: number;
+  net_amount: number;
+  trip_count: number;
+  status: 'pending' | 'confirmed' | 'paid' | 'disputed';
+  paid_at: string | null;
+}
+
+// ---------------------- 리뷰 ----------------------
+export interface Review {
+  id: string;
+  reservation_id: string;
+  customer_id: string;
+  driver_id: string;
+  rating: number;
+  content: string;
+  photos: string[];
+  driver_reply: string | null;
+  driver_replied_at: string | null;
+  is_visible: boolean;
+  created_at: string;
+}
+
+// ---------------------- 채팅 ----------------------
+export interface ChatRoom {
+  id: string;
+  request_id: string;
+  customer_id: string;
+  driver_id: string;
+  last_message: string | null;
+  last_message_at: string | null;
+  created_at: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  room_id: string;
+  sender_id: string;
+  message_type: 'text' | 'image' | 'system';
+  content: string;
+  image_url: string | null;
+  is_read: boolean;
+  created_at: string;
+}
+
+// ---------------------- 알림 ----------------------
+export interface Notification {
+  id: string;
+  user_id: string;
+  type: string;
+  title: string;
+  body: string;
+  data: any;
+  is_read: boolean;
+  created_at: string;
+}
+
+// ============================================================
+// 헬퍼 타입 - 차량 종류 (한국어 라벨)
+// ============================================================
+export interface VehicleType {
+  key: VehicleTypeKey;
+  label: string;
+  seats: number;
+}
+
+// ============================================================
+// 헬퍼 타입 - 예약 상태 (한국어 라벨)
+// ============================================================
+export interface ReservationStatusInfo {
+  key: Reservation['status'];
+  label: string;
+  color: string;
+}
+
+// ============================================================
+// 상수 정의
+// ============================================================
+
+/** 차량 종류 목록 */
+export const VEHICLE_TYPES: VehicleType[] = [
+  { key: 'minivan_15', label: '15인승 미니밴', seats: 15 },
+  { key: 'bus_25', label: '25인승 중형버스', seats: 25 },
+  { key: 'bus_45', label: '45인승 대형버스', seats: 45 },
+  { key: 'limousine', label: '리무진버스', seats: 45 },
+  { key: 'premium', label: '프리미엄버스', seats: 28 },
+  { key: 'solati', label: '쏠라티', seats: 12 },
+  { key: 'sprinter', label: '스프린터', seats: 16 },
+];
+
+/** 이용 목적 목록 */
+export const PURPOSES: string[] = [
+  '관광/여행',
+  '워크숍/단체행사',
+  '결혼식/돌잔치',
+  '학교/학원 행사',
+  '동호회/동문회',
+  '기업 셔틀',
+  '공항 픽업/샌딩',
+  '기타',
+];
+
+/** 차량 옵션 목록 */
+export const VEHICLE_OPTIONS: string[] = [
+  'USB 충전',
+  'Wi-Fi',
+  '냉장고',
+  '노래방',
+  '모니터/TV',
+  '커튼',
+  '리클라이닝 시트',
+  '테이블',
+  '트렁크 공간',
+  '장애인석',
+  '카시트 장착 가능',
+];
+
+/** 예약 상태 목록 (한국어 라벨 포함) */
+export const RESERVATION_STATUSES: ReservationStatusInfo[] = [
+  { key: 'pending_payment', label: '결제 대기', color: 'yellow' },
+  { key: 'deposit_paid', label: '예약금 결제 완료', color: 'blue' },
+  { key: 'confirmed', label: '예약 확정', color: 'green' },
+  { key: 'in_progress', label: '운행 중', color: 'indigo' },
+  { key: 'completed', label: '운행 완료', color: 'gray' },
+  { key: 'cancelled', label: '취소됨', color: 'red' },
+  { key: 'refunded', label: '환불 완료', color: 'orange' },
+];
