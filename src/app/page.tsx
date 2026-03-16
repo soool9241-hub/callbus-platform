@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
-import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { mockReviews } from '@/lib/mock-data';
 import { useAuth } from '@/hooks/useAuth';
@@ -120,11 +119,11 @@ export default function HomePage() {
               <br className="hidden sm:block" />
               가장 합리적인 선택을 할 수 있어요.
             </p>
-            <Link href="/quote-request">
-              <Button size="lg" className="w-full sm:w-auto bg-white text-blue-700 hover:bg-blue-50 px-10 py-5 text-lg font-bold rounded-xl shadow-lg hover:shadow-xl transition-all min-h-[56px]">
+            <Link href="/quote-request" className="inline-block w-full sm:w-auto">
+              <button className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white text-blue-700 hover:bg-blue-50 px-10 py-5 text-lg font-bold rounded-xl shadow-lg hover:shadow-xl transition-all min-h-[56px]">
                 무료 견적 신청하기
-                <ArrowRight className="w-5 h-5 ml-1" />
-              </Button>
+                <ArrowRight className="w-5 h-5" />
+              </button>
             </Link>
           </div>
         </div>
@@ -267,11 +266,11 @@ export default function HomePage() {
           <p className="text-blue-100 mb-10 text-base sm:text-lg leading-relaxed">
             1분이면 견적 신청 완료! 여러 기사님의 견적을 무료로 비교할 수 있습니다.
           </p>
-          <Link href="/quote-request">
-            <Button size="lg" className="w-full sm:w-auto bg-white text-blue-700 hover:bg-blue-50 px-10 py-5 text-lg font-bold rounded-xl shadow-lg min-h-[56px]">
+          <Link href="/quote-request" className="inline-block w-full sm:w-auto">
+            <button className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white text-blue-700 hover:bg-blue-50 px-10 py-5 text-lg font-bold rounded-xl shadow-lg hover:shadow-xl transition-all min-h-[56px]">
               무료 견적 신청하기
-              <ArrowRight className="w-5 h-5 ml-1" />
-            </Button>
+              <ArrowRight className="w-5 h-5" />
+            </button>
           </Link>
         </div>
       </section>
