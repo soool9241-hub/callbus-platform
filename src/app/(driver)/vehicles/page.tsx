@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Bus,
   Plus,
@@ -12,6 +12,7 @@ import {
   Mic,
   Refrigerator,
   Monitor,
+  Loader2,
 } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -22,6 +23,15 @@ import { Modal } from '@/components/ui/Modal';
 import { mockVehicles } from '@/lib/mock-data';
 import { VEHICLE_TYPES, VEHICLE_OPTIONS } from '@/types';
 import type { Vehicle } from '@/types';
+import { useAuth } from '@/hooks/useAuth';
+import { useStore } from '@/store/useStore';
+import {
+  getDriverVehicles,
+  getDriverByUserId,
+  createVehicle,
+  updateVehicle,
+  deleteVehicle,
+} from '@/lib/supabase-db';
 
 function getOptionIcon(option: string) {
   if (option.includes('Wi-Fi')) return Wifi;
@@ -33,9 +43,40 @@ function getOptionIcon(option: string) {
 }
 
 export default function VehiclesPage() {
-  const [vehicles, setVehicles] = useState<Vehicle[]>(mockVehicles);
+  const { isLoggedIn, loading: authLoading } = useAuth();
+  const { currentUser } = useStore();
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [driverId, setDriverId] = useState<string>('');
+  const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (authLoading) return;
+
+    async function fetchData() {
+      if (isLoggedIn && currentUser) {
+        try {
+          const driverResult = await getDriverByUserId(currentUser.id);
+          if (driverResult.data) {
+            setDriverId(driverResult.data.id);
+            const vehiclesResult = await getDriverVehicles(driverResult.data.id);
+            if (vehiclesResult.data) {
+              setVehicles(vehiclesResult.data as Vehicle[]);
+            }
+          }
+        } catch (err) {
+          console.error('차량 목록 로딩 실패:', err);
+          setVehicles(mockVehicles);
+        }
+      } else {
+        setVehicles(mockVehicles);
+      }
+      setLoading(false);
+    }
+
+    fetchData();
+  }, [isLoggedIn, currentUser, authLoading]);
 
   // Form state
   const [formType, setFormType] = useState('');
@@ -76,17 +117,34 @@ export default function VehiclesPage() {
     setModalOpen(true);
   };
 
-  const handleToggleActive = (id: string) => {
+  const handleToggleActive = async (id: string) => {
+    const vehicle = vehicles.find((v) => v.id === id);
+    if (!vehicle) return;
+    const newActive = !vehicle.is_active;
     setVehicles((prev) =>
       prev.map((v) =>
-        v.id === id ? { ...v, is_active: !v.is_active } : v
+        v.id === id ? { ...v, is_active: newActive } : v
       )
     );
+    if (isLoggedIn) {
+      try {
+        await updateVehicle(id, { is_active: newActive });
+      } catch (err) {
+        console.error('차량 상태 변경 실패:', err);
+      }
+    }
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm('정말 이 차량을 삭제하시겠습니까?')) {
       setVehicles((prev) => prev.filter((v) => v.id !== id));
+      if (isLoggedIn) {
+        try {
+          await deleteVehicle(id);
+        } catch (err) {
+          console.error('차량 삭제 실패:', err);
+        }
+      }
     }
   };
 
@@ -135,7 +193,7 @@ export default function VehiclesPage() {
   const photoColors = ['bg-green-100', 'bg-blue-100', 'bg-yellow-100', 'bg-purple-100', 'bg-pink-100'];
 
   return (
-    <div>
+    <div className="px-4 sm:px-6">
       {/* Page Header */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">차량 관리</h1>
@@ -343,7 +401,7 @@ export default function VehiclesPage() {
               <p className="text-sm text-gray-500">
                 클릭하여 사진을 업로드하세요
               </p>
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs text-gray-500 mt-1">
                 JPG, PNG (최대 5MB)
               </p>
             </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -13,6 +13,9 @@ import {
 } from '@/lib/mock-data';
 import { VEHICLE_TYPES, RESERVATION_STATUSES } from '@/types';
 import type { Reservation } from '@/types';
+import { useAuth } from '@/hooks/useAuth';
+import { useStore } from '@/store/useStore';
+import { getReservations } from '@/lib/supabase-db';
 import {
   MapPin,
   Calendar,
@@ -23,6 +26,7 @@ import {
   FileText,
   ChevronRight,
   Bus,
+  Loader2,
 } from 'lucide-react';
 
 type TabFilter = 'all' | 'pending_payment' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled';
@@ -60,9 +64,35 @@ function getStatusLabel(status: string): string {
 }
 
 export default function ReservationsPage() {
+  const { isLoggedIn, loading: authLoading } = useAuth();
+  const { currentUser } = useStore();
   const [activeTab, setActiveTab] = useState<TabFilter>('all');
+  const [reservations, setReservations] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filtered = mockReservations.filter((r) => {
+  useEffect(() => {
+    if (authLoading) return;
+
+    async function fetchData() {
+      if (isLoggedIn && currentUser) {
+        try {
+          const { data, error } = await getReservations({ customer_id: currentUser.id });
+          if (error) throw error;
+          setReservations(data || []);
+        } catch (err) {
+          console.error('예약 목록 로딩 실패:', err);
+          setReservations(mockReservations);
+        }
+      } else {
+        setReservations(mockReservations);
+      }
+      setLoading(false);
+    }
+
+    fetchData();
+  }, [isLoggedIn, currentUser, authLoading]);
+
+  const filtered = reservations.filter((r: any) => {
     if (activeTab === 'all') return true;
     if (activeTab === 'confirmed') return r.status === 'confirmed' || r.status === 'deposit_paid';
     return r.status === activeTab;
@@ -82,11 +112,19 @@ export default function ReservationsPage() {
     }
   };
 
+  if (loading || authLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
   return (
-    <div className="py-2">
+    <div className="py-2 px-4 sm:px-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">내 예약</h1>
-        <span className="text-sm text-gray-500">{mockReservations.length}건</span>
+        <span className="text-sm text-gray-600">{reservations.length}건</span>
       </div>
 
       {/* Tab Filter */}
@@ -115,22 +153,20 @@ export default function ReservationsPage() {
           </div>
         )}
 
-        {filtered.map((rsv) => {
-          const quote = mockQuotes.find((q) => q.id === rsv.quote_id);
-          const request = quote
-            ? mockQuoteRequests.find((r) => r.id === quote.request_id)
-            : null;
-          const driver = mockDrivers.find((d) => d.id === rsv.driver_id);
-          const vehicle = quote
-            ? mockVehicles.find((v) => v.id === quote.vehicle_id)
-            : null;
+        {filtered.map((rsv: any) => {
+          // Support both Supabase joined data and mock data lookup
+          const quote = rsv.quotes || mockQuotes.find((q) => q.id === rsv.quote_id);
+          const request = quote?.quote_requests || (quote ? mockQuoteRequests.find((r) => r.id === quote.request_id) : null);
+          const driver = rsv.drivers || mockDrivers.find((d) => d.id === rsv.driver_id);
+          const vehicle = quote?.vehicles || (quote ? mockVehicles.find((v) => v.id === quote.vehicle_id) : null);
+          const driverName = driver?.profiles?.name || driver?.user_id && driverNames[rsv.driver_id] || driverNames[rsv.driver_id];
 
           return (
             <Card key={rsv.id} padding="none" hover>
               <div className="p-5">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-mono text-gray-400">
+                  <span className="text-sm font-mono text-gray-500">
                     {rsv.reservation_number}
                   </span>
                   <Badge variant={statusVariant[rsv.status] || 'default'} size="sm" dot>
@@ -154,7 +190,7 @@ export default function ReservationsPage() {
 
                 {/* Date */}
                 {request && (
-                  <div className="flex items-center gap-1 text-sm text-gray-500 mb-3">
+                  <div className="flex items-center gap-1 text-sm text-gray-600 mb-3">
                     <Calendar className="w-3.5 h-3.5" />
                     {new Date(request.departure_datetime).toLocaleDateString('ko-KR', {
                       year: 'numeric',
@@ -172,7 +208,7 @@ export default function ReservationsPage() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900">
                       {driverNames[rsv.driver_id] || '기사'} 기사님
-                      <span className="text-gray-400 font-normal ml-1">
+                      <span className="text-gray-500 font-normal ml-1">
                         {driver?.company_name}
                       </span>
                     </p>
@@ -186,14 +222,14 @@ export default function ReservationsPage() {
 
                 {/* Amount */}
                 <div className="flex items-center justify-between py-3 border-t border-gray-100">
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm text-gray-600">
                     <span>총 금액</span>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-bold text-gray-900">
+                    <p className="text-xl font-bold text-gray-900">
                       {formatPrice(rsv.total_amount)}
                     </p>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-gray-500">
                       예약금 {formatPrice(rsv.deposit_amount)} 결제
                     </p>
                   </div>
@@ -204,17 +240,19 @@ export default function ReservationsPage() {
                   {(rsv.status === 'pending_payment' || rsv.status === 'deposit_paid') && (
                     <>
                       <Button
-                        size="sm"
+                        size="md"
                         fullWidth
                         onClick={() => handleAction('pay', rsv)}
+                        className="min-h-[44px]"
                       >
                         <CreditCard className="w-4 h-4" />
                         잔금결제
                       </Button>
                       <Button
-                        size="sm"
+                        size="md"
                         variant="danger"
                         onClick={() => handleAction('cancel', rsv)}
+                        className="min-h-[44px]"
                       >
                         <X className="w-4 h-4" />
                         취소
@@ -223,10 +261,11 @@ export default function ReservationsPage() {
                   )}
                   {rsv.status === 'confirmed' && (
                     <Button
-                      size="sm"
+                      size="md"
                       variant="danger"
                       fullWidth
                       onClick={() => handleAction('cancel', rsv)}
+                      className="min-h-[44px]"
                     >
                       <X className="w-4 h-4" />
                       취소
@@ -234,10 +273,11 @@ export default function ReservationsPage() {
                   )}
                   {rsv.status === 'completed' && (
                     <Button
-                      size="sm"
+                      size="md"
                       variant="outline"
                       fullWidth
                       onClick={() => handleAction('review', rsv)}
+                      className="min-h-[44px]"
                     >
                       <Star className="w-4 h-4" />
                       리뷰작성

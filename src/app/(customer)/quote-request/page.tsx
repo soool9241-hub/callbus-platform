@@ -1,12 +1,16 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
 import { Card } from '@/components/ui/Card';
 import { VEHICLE_TYPES, PURPOSES } from '@/types';
+import { useAuth } from '@/hooks/useAuth';
+import { useStore } from '@/store/useStore';
+import { createQuoteRequest } from '@/lib/supabase-db';
 import {
   MapPin,
   Calendar,
@@ -17,6 +21,7 @@ import {
   ChevronLeft,
   ChevronRight,
   CheckCircle,
+  Loader2,
 } from 'lucide-react';
 
 const TOTAL_STEPS = 4;
@@ -24,8 +29,12 @@ const TOTAL_STEPS = 4;
 const stepLabels = ['노선 정보', '일정 정보', '상세 정보', '연락처'];
 
 export default function QuoteRequestPage() {
+  const router = useRouter();
+  const { isLoggedIn } = useAuth();
+  const { currentUser } = useStore();
   const [step, setStep] = useState(1);
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   // Step 1: Route
   const [departure, setDeparture] = useState('');
@@ -70,25 +79,63 @@ export default function QuoteRequestPage() {
     if (step > 1) setStep(step - 1);
   };
 
-  const handleSubmit = () => {
-    setToast(true);
-    setSubmitted(true);
-    setTimeout(() => setToast(false), 4000);
+  const handleSubmit = async () => {
+    if (!isLoggedIn || !currentUser) {
+      alert('로그인 후 이용 가능합니다');
+      router.push('/auth');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const requestNumber = `BUS-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
+      const { error } = await createQuoteRequest({
+        customer_id: currentUser.id,
+        request_number: requestNumber,
+        departure_address: departure,
+        destination_address: destination,
+        waypoints: waypoints.filter(Boolean).map((wp, i) => ({
+          address: wp,
+          lat: 0,
+          lng: 0,
+          order: i + 1,
+        })),
+        departure_datetime: new Date(departureDate).toISOString(),
+        return_datetime: tripType === 'round' && returnDate ? new Date(returnDate).toISOString() : undefined,
+        trip_type: tripType,
+        passenger_count: Number(passengerCount),
+        vehicle_type: selectedVehicleTypes,
+        purpose,
+        special_requests: specialRequests || undefined,
+        contact_phone: contactPhone,
+      });
+
+      if (error) throw error;
+
+      setToast(true);
+      setSubmitted(true);
+      setTimeout(() => setToast(false), 4000);
+    } catch (err) {
+      console.error('견적 요청 실패:', err);
+      alert('견적 요청 중 오류가 발생했습니다. 다시 시도해주세요.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (submitted) {
     return (
-      <div className="max-w-lg mx-auto py-20 text-center">
+      <div className="max-w-lg mx-auto py-20 px-4 text-center">
         <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-6">
           <CheckCircle className="w-10 h-10 text-green-600" />
         </div>
         <h2 className="text-2xl font-bold text-gray-900 mb-3">견적 요청 완료!</h2>
-        <p className="text-gray-500 mb-8">
+        <p className="text-gray-600 mb-8">
           기사님들의 견적을 기다려주세요.
           <br />
           보통 1~2시간 내에 견적이 도착합니다.
         </p>
-        <div className="flex gap-3 justify-center">
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Button variant="outline" onClick={() => { setSubmitted(false); setStep(1); }}>
             새 견적 신청
           </Button>
@@ -101,7 +148,7 @@ export default function QuoteRequestPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto py-6">
+    <div className="max-w-2xl mx-auto py-6 px-4 sm:px-6">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">견적 신청</h1>
 
       {/* Progress Bar */}
@@ -110,15 +157,15 @@ export default function QuoteRequestPage() {
           {stepLabels.map((label, i) => (
             <div key={label} className="flex flex-col items-center flex-1">
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
+                className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold transition-colors ${
                   i + 1 <= step
                     ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-500'
+                    : 'bg-gray-200 text-gray-600'
                 }`}
               >
                 {i + 1}
               </div>
-              <span className={`text-xs mt-1 ${i + 1 <= step ? 'text-blue-600 font-medium' : 'text-gray-400'}`}>
+              <span className={`text-[10px] sm:text-xs mt-1 ${i + 1 <= step ? 'text-blue-600 font-medium' : 'text-gray-500'}`}>
                 {label}
               </span>
             </div>
@@ -326,22 +373,33 @@ export default function QuoteRequestPage() {
         <div className="flex justify-between mt-8 pt-6 border-t border-gray-100">
           <Button
             variant="outline"
+            size="lg"
             onClick={handlePrev}
             disabled={step === 1}
+            className="min-h-[48px]"
           >
             <ChevronLeft className="w-4 h-4" />
             이전
           </Button>
 
           {step < TOTAL_STEPS ? (
-            <Button onClick={handleNext}>
+            <Button onClick={handleNext} size="lg" className="min-h-[48px]">
               다음
               <ChevronRight className="w-4 h-4" />
             </Button>
           ) : (
-            <Button onClick={handleSubmit}>
-              견적 신청하기
-              <CheckCircle className="w-4 h-4" />
+            <Button onClick={handleSubmit} disabled={submitting} size="lg" className="min-h-[48px]">
+              {submitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  처리중...
+                </>
+              ) : (
+                <>
+                  견적 신청하기
+                  <CheckCircle className="w-4 h-4" />
+                </>
+              )}
             </Button>
           )}
         </div>

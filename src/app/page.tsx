@@ -81,28 +81,28 @@ export default function HomePage() {
       <Header />
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white overflow-hidden">
+      <section className="relative min-h-screen flex items-center bg-gradient-to-br from-blue-700 via-blue-800 to-blue-900 text-white overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-10 left-10 w-72 h-72 bg-white rounded-full blur-3xl" />
           <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-300 rounded-full blur-3xl" />
         </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32 w-full">
           <div className="text-center max-w-3xl mx-auto">
-            <span className="inline-block px-4 py-1.5 bg-white/20 rounded-full text-sm font-medium mb-6 backdrop-blur-sm">
+            <span className="inline-block px-5 py-2 bg-white/20 rounded-full text-sm sm:text-base font-medium mb-8 backdrop-blur-sm">
               전국 300개 버스회사와 함께합니다
             </span>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight mb-6">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight mb-8">
               전세버스 대절,
               <br />
               한번에 비교하세요!
             </h1>
-            <p className="text-lg sm:text-xl text-blue-100 mb-10 max-w-xl mx-auto">
+            <p className="text-lg sm:text-xl md:text-2xl text-blue-100 mb-12 max-w-xl mx-auto leading-relaxed">
               견적 한 번이면 여러 버스회사의 가격을 비교하고
               <br className="hidden sm:block" />
               가장 합리적인 선택을 할 수 있어요.
             </p>
             <Link href="/quote-request">
-              <Button size="lg" className="bg-white text-blue-700 hover:bg-blue-50 px-8 py-4 text-lg font-bold rounded-xl shadow-lg hover:shadow-xl transition-all">
+              <Button size="lg" className="w-full sm:w-auto bg-white text-blue-700 hover:bg-blue-50 px-10 py-5 text-lg font-bold rounded-xl shadow-lg hover:shadow-xl transition-all min-h-[56px]">
                 무료 견적 신청하기
                 <ArrowRight className="w-5 h-5 ml-1" />
               </Button>
@@ -113,30 +113,30 @@ export default function HomePage() {
 
       {/* Stats Bar */}
       <section className="bg-white border-b border-gray-100 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-12">
+          <div className="grid grid-cols-3 gap-4 sm:gap-6 text-center">
             <div>
-              <p className="text-3xl font-bold text-blue-600">70만건+</p>
-              <p className="text-gray-500 mt-1">누적 견적</p>
+              <p className="text-2xl sm:text-3xl font-bold text-blue-600">70만건+</p>
+              <p className="text-gray-600 mt-1 text-sm sm:text-base">누적 견적</p>
             </div>
-            <div className="border-l-0 sm:border-l border-gray-200">
-              <p className="text-3xl font-bold text-blue-600">6,000명+</p>
-              <p className="text-gray-500 mt-1">등록 기사</p>
+            <div className="border-l border-gray-200">
+              <p className="text-2xl sm:text-3xl font-bold text-blue-600">6,000명+</p>
+              <p className="text-gray-600 mt-1 text-sm sm:text-base">등록 기사</p>
             </div>
-            <div className="border-l-0 sm:border-l border-gray-200">
-              <p className="text-3xl font-bold text-blue-600">300개</p>
-              <p className="text-gray-500 mt-1">전국 버스회사</p>
+            <div className="border-l border-gray-200">
+              <p className="text-2xl sm:text-3xl font-bold text-blue-600">300개</p>
+              <p className="text-gray-600 mt-1 text-sm sm:text-base">전국 버스회사</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* How It Works */}
-      <section className="bg-gray-50 py-16 md:py-20">
+      <section className="bg-gray-50 py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">이용 방법</h2>
-            <p className="text-gray-500 mt-2">간단한 3단계로 전세버스를 예약하세요</p>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">이용 방법</h2>
+            <p className="text-gray-600 mt-3 text-base sm:text-lg">간단한 3단계로 전세버스를 예약하세요</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {steps.map((step, i) => (
@@ -146,7 +146,7 @@ export default function HomePage() {
                 </div>
                 <div className="text-sm font-bold text-blue-600 mb-1">STEP {step.num}</div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">{step.title}</h3>
-                <p className="text-gray-500">{step.desc}</p>
+                <p className="text-gray-600">{step.desc}</p>
                 {i < steps.length - 1 && (
                   <div className="hidden md:block absolute top-8 right-0 translate-x-1/2">
                     <ChevronRight className="w-6 h-6 text-gray-300" />
@@ -159,18 +159,18 @@ export default function HomePage() {
       </section>
 
       {/* Vehicle Types */}
-      <section className="bg-white py-16 md:py-20">
+      <section className="bg-white py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">차량 종류</h2>
-            <p className="text-gray-500 mt-2">다양한 차량 중 딱 맞는 버스를 선택하세요</p>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">차량 종류</h2>
+            <p className="text-gray-600 mt-3 text-base sm:text-lg">다양한 차량 중 딱 맞는 버스를 선택하세요</p>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {vehicleTypes.map((vt) => (
               <Card key={vt.name} hover padding="md" className="text-center cursor-pointer group">
                 <div className="text-4xl mb-3">{vt.emoji}</div>
                 <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">{vt.name}</h3>
-                <p className="text-sm text-gray-500 mt-1">{vt.desc}</p>
+                <p className="text-sm text-gray-600 mt-1">{vt.desc}</p>
               </Card>
             ))}
           </div>
@@ -178,13 +178,13 @@ export default function HomePage() {
       </section>
 
       {/* Purpose Showcase */}
-      <section className="bg-gray-50 py-16 md:py-20">
+      <section className="bg-gray-50 py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">이용 목적</h2>
-            <p className="text-gray-500 mt-2">어떤 목적이든 콜버스와 함께하세요</p>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">이용 목적</h2>
+            <p className="text-gray-600 mt-3 text-base sm:text-lg">어떤 목적이든 콜버스와 함께하세요</p>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {purposes.map((p) => (
               <div
                 key={p.name}
@@ -201,11 +201,11 @@ export default function HomePage() {
       </section>
 
       {/* Reviews */}
-      <section className="bg-white py-16 md:py-20">
+      <section className="bg-white py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">이용 후기</h2>
-            <p className="text-gray-500 mt-2">실제 이용고객의 생생한 후기를 확인하세요</p>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">이용 후기</h2>
+            <p className="text-gray-600 mt-3 text-base sm:text-lg">실제 이용고객의 생생한 후기를 확인하세요</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {sampleReviews.map((review) => (
@@ -219,7 +219,7 @@ export default function HomePage() {
                   ))}
                   <span className="text-sm text-gray-500 ml-1">{review.rating}.0</span>
                 </div>
-                <p className="text-gray-700 text-sm leading-relaxed line-clamp-3">{review.content}</p>
+                <p className="text-gray-700 text-sm sm:text-base leading-relaxed line-clamp-3">{review.content}</p>
                 <div className="flex items-center gap-2 mt-auto pt-3 border-t border-gray-100">
                   <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-xs font-bold">
                     {(reviewerNames[review.customer_id] || '고객')[0]}
@@ -228,7 +228,7 @@ export default function HomePage() {
                     <p className="text-sm font-medium text-gray-900">
                       {reviewerNames[review.customer_id] || '고객'}
                     </p>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-gray-500">
                       {new Date(review.created_at).toLocaleDateString('ko-KR')}
                     </p>
                   </div>
@@ -240,16 +240,16 @@ export default function HomePage() {
       </section>
 
       {/* Bottom CTA */}
-      <section className="bg-gradient-to-r from-blue-600 to-blue-700 py-16">
-        <div className="max-w-3xl mx-auto px-4 text-center text-white">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-4">
+      <section className="bg-gradient-to-r from-blue-700 to-blue-800 py-20 md:py-24">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center text-white">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6">
             지금 바로 견적을 받아보세요
           </h2>
-          <p className="text-blue-100 mb-8">
+          <p className="text-blue-100 mb-10 text-base sm:text-lg leading-relaxed">
             1분이면 견적 신청 완료! 여러 기사님의 견적을 무료로 비교할 수 있습니다.
           </p>
           <Link href="/quote-request">
-            <Button size="lg" className="bg-white text-blue-700 hover:bg-blue-50 px-8 py-4 text-lg font-bold rounded-xl shadow-lg">
+            <Button size="lg" className="w-full sm:w-auto bg-white text-blue-700 hover:bg-blue-50 px-10 py-5 text-lg font-bold rounded-xl shadow-lg min-h-[56px]">
               무료 견적 신청하기
               <ArrowRight className="w-5 h-5 ml-1" />
             </Button>

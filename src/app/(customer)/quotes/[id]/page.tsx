@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -13,6 +13,10 @@ import {
   mockVehicles,
 } from '@/lib/mock-data';
 import { VEHICLE_TYPES } from '@/types';
+import type { QuoteRequest, Quote } from '@/types';
+import { useAuth } from '@/hooks/useAuth';
+import { useStore } from '@/store/useStore';
+import { getQuoteRequestById, getQuotesForRequest, createReservation } from '@/lib/supabase-db';
 import {
   MapPin,
   Calendar,
@@ -24,6 +28,7 @@ import {
   MessageCircle,
   CheckCircle,
   ChevronLeft,
+  Loader2,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -45,14 +50,47 @@ function getVehicleLabel(key: string): string {
 export default function QuoteComparisonPage() {
   const params = useParams();
   const requestId = params.id as string;
+  const { isLoggedIn, loading: authLoading } = useAuth();
+  const { currentUser } = useStore();
 
-  const request = mockQuoteRequests.find((r) => r.id === requestId);
-  const quotes = mockQuotes.filter((q) => q.request_id === requestId);
+  const [request, setRequest] = useState<QuoteRequest | null | undefined>(undefined);
+  const [quotes, setQuotes] = useState<Quote[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [reserving, setReserving] = useState(false);
 
   const [sortBy, setSortBy] = useState<SortOption>('price');
   const [selectedQuoteId, setSelectedQuoteId] = useState<string | null>(null);
   const [confirmModal, setConfirmModal] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
+
+  useEffect(() => {
+    if (authLoading) return;
+
+    async function fetchData() {
+      if (isLoggedIn) {
+        try {
+          const [reqResult, quotesResult] = await Promise.all([
+            getQuoteRequestById(requestId),
+            getQuotesForRequest(requestId),
+          ]);
+          if (reqResult.error) throw reqResult.error;
+          setRequest(reqResult.data as QuoteRequest);
+          setQuotes((quotesResult.data || []) as Quote[]);
+        } catch (err) {
+          console.error('데이터 로딩 실패:', err);
+          // Fall back to mock data
+          setRequest(mockQuoteRequests.find((r) => r.id === requestId) || null);
+          setQuotes(mockQuotes.filter((q) => q.request_id === requestId));
+        }
+      } else {
+        setRequest(mockQuoteRequests.find((r) => r.id === requestId) || null);
+        setQuotes(mockQuotes.filter((q) => q.request_id === requestId));
+      }
+      setLoading(false);
+    }
+
+    fetchData();
+  }, [requestId, isLoggedIn, authLoading]);
 
   const sortedQuotes = useMemo(() => {
     const sorted = [...quotes];
@@ -77,6 +115,14 @@ export default function QuoteComparisonPage() {
 
   const selectedQuote = quotes.find((q) => q.id === selectedQuoteId);
 
+  if (loading || authLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
   if (!request) {
     return (
       <div className="py-20 text-center text-gray-500">
@@ -93,18 +139,44 @@ export default function QuoteComparisonPage() {
     setConfirmModal(true);
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
+    if (!selectedQuote) return;
+
+    if (isLoggedIn && currentUser) {
+      setReserving(true);
+      try {
+        const depositRate = 0.3;
+        const depositAmount = Math.round(selectedQuote.total_price * depositRate);
+        const { error } = await createReservation({
+          reservation_number: `RSV-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`,
+          quote_id: selectedQuote.id,
+          customer_id: currentUser.id,
+          driver_id: selectedQuote.driver_id,
+          total_amount: selectedQuote.total_price,
+          deposit_amount: depositAmount,
+          remaining_amount: selectedQuote.total_price - depositAmount,
+        });
+        if (error) throw error;
+      } catch (err) {
+        console.error('예약 실패:', err);
+        alert('예약 처리 중 오류가 발생했습니다.');
+        setReserving(false);
+        return;
+      }
+      setReserving(false);
+    }
+
     setConfirmModal(false);
     setConfirmed(true);
     setTimeout(() => setConfirmed(false), 4000);
   };
 
   return (
-    <div className="py-2">
+    <div className="py-2 px-4 sm:px-6">
       {/* Back */}
       <Link
         href="/quotes"
-        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-4"
+        className="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-800 mb-4"
       >
         <ChevronLeft className="w-4 h-4" />
         견적 목록
@@ -120,7 +192,7 @@ export default function QuoteComparisonPage() {
               <ArrowRight className="w-4 h-4 text-gray-400" />
               {request.destination_address.split(' ').slice(0, 3).join(' ')}
             </div>
-            <div className="flex flex-wrap gap-4 text-sm text-gray-500">
+            <div className="flex flex-wrap gap-4 text-sm text-gray-600">
               <span className="flex items-center gap-1">
                 <Calendar className="w-3.5 h-3.5" />
                 {new Date(request.departure_datetime).toLocaleDateString('ko-KR', {
@@ -191,12 +263,12 @@ export default function QuoteComparisonPage() {
                       <span className="font-semibold text-gray-900">
                         {driverNames[quote.driver_id] || '기사'} 기사님
                       </span>
-                      <span className="text-sm text-gray-400">{driver?.company_name}</span>
+                      <span className="text-sm text-gray-500">{driver?.company_name}</span>
                     </div>
                     <div className="flex items-center gap-1 mt-0.5">
                       <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
                       <span className="text-sm font-medium text-gray-700">{driver?.rating}</span>
-                      <span className="text-xs text-gray-400">({driver?.review_count}건)</span>
+                      <span className="text-xs text-gray-500">({driver?.review_count}건)</span>
                     </div>
                   </div>
                 </div>
@@ -242,12 +314,12 @@ export default function QuoteComparisonPage() {
                   )}
                   <div className="flex justify-between pt-2 border-t border-gray-100">
                     <span className="font-semibold text-gray-900">총 금액</span>
-                    <span className="text-xl font-bold text-blue-600">
+                    <span className="text-2xl sm:text-xl font-bold text-blue-600">
                       {formatPrice(quote.total_price)}
                     </span>
                   </div>
                   {quote.vat_included && (
-                    <p className="text-xs text-gray-400 text-right">VAT 포함</p>
+                    <p className="text-xs text-gray-500 text-right">VAT 포함</p>
                   )}
                 </div>
 
@@ -258,7 +330,7 @@ export default function QuoteComparisonPage() {
                 </div>
 
                 {/* Select Button */}
-                <Button fullWidth onClick={() => handleSelect(quote.id)}>
+                <Button fullWidth size="lg" onClick={() => handleSelect(quote.id)} className="min-h-[48px]">
                   선택하기
                 </Button>
               </div>
@@ -309,7 +381,7 @@ export default function QuoteComparisonPage() {
                 </span>
               </div>
             </div>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-gray-500">
               예약금 결제 후 예약이 확정됩니다. 잔금은 운행 전일까지 결제해주세요.
             </p>
           </div>

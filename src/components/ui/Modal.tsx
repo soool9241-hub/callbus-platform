@@ -61,7 +61,7 @@ export function Modal({
         aria-modal="true"
         aria-label={title}
         className={`
-          relative z-10 mx-4 w-full rounded-xl bg-white shadow-xl
+          relative z-10 mx-2 sm:mx-4 w-full rounded-xl bg-white shadow-xl max-h-[90vh] overflow-y-auto
           ${sizeClasses[size]}
         `}
       >

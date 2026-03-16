@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, Suspense } from 'react';
+import { useState, useEffect, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -12,6 +12,7 @@ import {
   ArrowRight,
   DollarSign,
   CheckCircle,
+  Loader2,
 } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -21,6 +22,10 @@ import { Textarea } from '@/components/ui/Textarea';
 import { Badge } from '@/components/ui/Badge';
 import { mockQuoteRequests, mockVehicles } from '@/lib/mock-data';
 import { VEHICLE_TYPES } from '@/types';
+import type { QuoteRequest, Vehicle } from '@/types';
+import { useAuth } from '@/hooks/useAuth';
+import { useStore } from '@/store/useStore';
+import { getQuoteRequestById, getDriverVehicles, getDriverByUserId, createQuote } from '@/lib/supabase-db';
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr);
@@ -48,8 +53,14 @@ function getVehicleTypeLabel(typeKeys: string[]): string {
 function QuoteSubmitContent() {
   const searchParams = useSearchParams();
   const requestId = searchParams.get('requestId') || 'req-001';
+  const { isLoggedIn, loading: authLoading } = useAuth();
+  const { currentUser } = useStore();
 
-  const request = mockQuoteRequests.find((r) => r.id === requestId) || mockQuoteRequests[0];
+  const [request, setRequest] = useState<QuoteRequest | null>(null);
+  const [vehicles, setVehicles] = useState<Vehicle[]>(mockVehicles);
+  const [driverId, setDriverId] = useState<string>('');
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   // Form state
   const [basePrice, setBasePrice] = useState<number>(0);
@@ -61,22 +72,99 @@ function QuoteSubmitContent() {
   const [message, setMessage] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
+  useEffect(() => {
+    if (authLoading) return;
+
+    async function fetchData() {
+      if (isLoggedIn && currentUser) {
+        try {
+          const [reqResult, driverResult] = await Promise.all([
+            getQuoteRequestById(requestId),
+            getDriverByUserId(currentUser.id),
+          ]);
+          if (reqResult.data) setRequest(reqResult.data as QuoteRequest);
+          else setRequest(mockQuoteRequests.find((r) => r.id === requestId) || mockQuoteRequests[0]);
+
+          if (driverResult.data) {
+            setDriverId(driverResult.data.id);
+            const vehiclesResult = await getDriverVehicles(driverResult.data.id);
+            if (vehiclesResult.data && vehiclesResult.data.length > 0) {
+              setVehicles(vehiclesResult.data as Vehicle[]);
+            }
+          }
+        } catch (err) {
+          console.error('데이터 로딩 실패:', err);
+          setRequest(mockQuoteRequests.find((r) => r.id === requestId) || mockQuoteRequests[0]);
+        }
+      } else {
+        setRequest(mockQuoteRequests.find((r) => r.id === requestId) || mockQuoteRequests[0]);
+      }
+      setLoading(false);
+    }
+
+    fetchData();
+  }, [requestId, isLoggedIn, currentUser, authLoading]);
+
   const subtotal = basePrice + tollFee + mealFee + parkingFee;
   const vatAmount = vatIncluded ? 0 : Math.floor(subtotal * 0.1);
   const total = subtotal + vatAmount;
 
-  const vehicleOptions = mockVehicles
+  const vehicleOptions = vehicles
     .filter((v) => v.is_active)
     .map((v) => ({
       value: v.id,
       label: `${v.vehicle_name} (${v.plate_number}) - ${v.seats}인승`,
     }));
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (isLoggedIn && driverId) {
+      setSubmitting(true);
+      try {
+        const { error } = await createQuote({
+          request_id: requestId,
+          driver_id: driverId,
+          vehicle_id: selectedVehicle,
+          base_price: basePrice,
+          toll_fee: tollFee,
+          meal_fee: mealFee,
+          parking_fee: parkingFee,
+          total_price: total,
+          vat_included: vatIncluded,
+          message,
+        });
+        if (error) throw error;
+      } catch (err) {
+        console.error('견적 제출 실패:', err);
+        alert('견적 제출 중 오류가 발생했습니다. 다시 시도해주세요.');
+        setSubmitting(false);
+        return;
+      }
+      setSubmitting(false);
+    }
+
     setSubmitted(true);
-    // In a real app, this would submit to the backend
   };
+
+  if (loading || authLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-green-600" />
+      </div>
+    );
+  }
+
+  if (!request) {
+    return (
+      <div className="py-20 text-center text-gray-500">
+        <p>견적 요청을 찾을 수 없습니다.</p>
+        <Link href="/dashboard" className="text-green-600 hover:underline mt-2 inline-block">
+          목록으로 돌아가기
+        </Link>
+      </div>
+    );
+  }
 
   if (submitted) {
     return (
@@ -311,9 +399,17 @@ function QuoteSubmitContent() {
                   </Link>
                   <Button
                     type="submit"
+                    disabled={submitting}
                     className="bg-green-600 hover:bg-green-700 active:bg-green-800 focus-visible:ring-green-500"
                   >
-                    견적 제출
+                    {submitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        처리중...
+                      </>
+                    ) : (
+                      '견적 제출'
+                    )}
                   </Button>
                 </div>
               </form>
@@ -393,10 +489,10 @@ function QuoteSubmitContent() {
                 <div className="mt-4 p-3 bg-gray-50 rounded-lg">
                   <p className="text-xs text-gray-500 mb-1">배차 차량</p>
                   <p className="text-sm font-medium text-gray-900">
-                    {mockVehicles.find((v) => v.id === selectedVehicle)?.vehicle_name}
+                    {vehicles.find((v) => v.id === selectedVehicle)?.vehicle_name}
                   </p>
                   <p className="text-xs text-gray-500">
-                    {mockVehicles.find((v) => v.id === selectedVehicle)?.plate_number}
+                    {vehicles.find((v) => v.id === selectedVehicle)?.plate_number}
                   </p>
                 </div>
               )}

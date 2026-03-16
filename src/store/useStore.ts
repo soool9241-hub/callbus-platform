@@ -1,48 +1,45 @@
-// ============================================================
-// 콜버스 플랫폼 - Zustand 전역 상태 관리
-// ============================================================
-
-import { create } from 'zustand';
-import type { User, Notification } from '@/types';
+'use client'
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 
 interface AppState {
-  /** 현재 로그인한 사용자 */
-  currentUser: User | null;
-  /** 현재 사용자 설정 */
-  setCurrentUser: (user: User | null) => void;
-
-  /** 현재 역할 (고객/기사/관리자) */
-  currentRole: 'customer' | 'driver' | 'admin';
-  /** 역할 전환 */
-  setCurrentRole: (role: 'customer' | 'driver' | 'admin') => void;
-
-  /** 알림 목록 */
-  notifications: Notification[];
-  /** 알림 추가 */
-  addNotification: (notification: Notification) => void;
-  /** 알림 읽음 처리 */
-  markNotificationRead: (notificationId: string) => void;
+  currentUser: any | null
+  setCurrentUser: (user: any | null) => void
+  currentRole: 'customer' | 'driver' | 'admin'
+  setCurrentRole: (role: 'customer' | 'driver' | 'admin') => void
+  notifications: any[]
+  unreadCount: number
+  setNotifications: (notifications: any[]) => void
+  addNotification: (notification: any) => void
+  markNotificationRead: (id: string) => void
+  isAuthLoading: boolean
+  setAuthLoading: (loading: boolean) => void
 }
 
-export const useStore = create<AppState>((set) => ({
-  // 사용자
-  currentUser: null,
-  setCurrentUser: (user) => set({ currentUser: user }),
-
-  // 역할
-  currentRole: 'customer',
-  setCurrentRole: (role) => set({ currentRole: role }),
-
-  // 알림
-  notifications: [],
-  addNotification: (notification) =>
-    set((state) => ({
-      notifications: [notification, ...state.notifications],
-    })),
-  markNotificationRead: (notificationId) =>
-    set((state) => ({
-      notifications: state.notifications.map((n) =>
-        n.id === notificationId ? { ...n, is_read: true } : n
-      ),
-    })),
-}));
+export const useStore = create<AppState>()(
+  persist(
+    (set, get) => ({
+      currentUser: null,
+      setCurrentUser: (user) => set({ currentUser: user }),
+      currentRole: 'customer',
+      setCurrentRole: (role) => set({ currentRole: role }),
+      notifications: [],
+      unreadCount: 0,
+      setNotifications: (notifications) => set({ notifications, unreadCount: notifications.filter((n: any) => !n.is_read).length }),
+      addNotification: (notification) => {
+        const notifications = [notification, ...get().notifications]
+        set({ notifications, unreadCount: notifications.filter((n: any) => !n.is_read).length })
+      },
+      markNotificationRead: (id) => {
+        const notifications = get().notifications.map((n: any) => n.id === id ? { ...n, is_read: true } : n)
+        set({ notifications, unreadCount: notifications.filter((n: any) => !n.is_read).length })
+      },
+      isAuthLoading: true,
+      setAuthLoading: (loading) => set({ isAuthLoading: loading }),
+    }),
+    {
+      name: 'callbus-store',
+      partialize: (state) => ({ currentRole: state.currentRole }),
+    }
+  )
+)

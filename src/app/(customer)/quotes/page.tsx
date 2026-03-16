@@ -1,11 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { mockQuoteRequests } from '@/lib/mock-data';
 import { VEHICLE_TYPES } from '@/types';
 import type { QuoteRequest } from '@/types';
+import { useAuth } from '@/hooks/useAuth';
+import { useStore } from '@/store/useStore';
+import { getQuoteRequests } from '@/lib/supabase-db';
 import {
   MapPin,
   Calendar,
@@ -14,6 +17,7 @@ import {
   ChevronRight,
   FileText,
   MessageSquare,
+  Loader2,
 } from 'lucide-react';
 
 type TabFilter = 'all' | 'open' | 'in_progress' | 'completed' | 'cancelled';
@@ -39,9 +43,35 @@ function getVehicleLabel(key: string): string {
 }
 
 export default function QuotesPage() {
+  const { isLoggedIn, loading: authLoading } = useAuth();
+  const { currentUser } = useStore();
   const [activeTab, setActiveTab] = useState<TabFilter>('all');
+  const [quoteRequests, setQuoteRequests] = useState<QuoteRequest[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filtered = mockQuoteRequests.filter((r) => {
+  useEffect(() => {
+    if (authLoading) return;
+
+    async function fetchData() {
+      if (isLoggedIn && currentUser) {
+        try {
+          const { data, error } = await getQuoteRequests({ customer_id: currentUser.id });
+          if (error) throw error;
+          setQuoteRequests(data as QuoteRequest[]);
+        } catch (err) {
+          console.error('견적 요청 목록 로딩 실패:', err);
+          setQuoteRequests(mockQuoteRequests);
+        }
+      } else {
+        setQuoteRequests(mockQuoteRequests);
+      }
+      setLoading(false);
+    }
+
+    fetchData();
+  }, [isLoggedIn, currentUser, authLoading]);
+
+  const filtered = quoteRequests.filter((r) => {
     if (activeTab === 'all') return true;
     if (activeTab === 'open') return r.status === 'open' || r.status === 'in_progress';
     return r.status === activeTab;
@@ -55,11 +85,19 @@ export default function QuotesPage() {
     }
   };
 
+  if (loading || authLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
   return (
-    <div className="py-2">
+    <div className="py-2 px-4 sm:px-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">내 견적 요청</h1>
-        <span className="text-sm text-gray-500">{mockQuoteRequests.length}건</span>
+        <span className="text-sm text-gray-600">{quoteRequests.length}건</span>
       </div>
 
       {/* Tab Filter */}
@@ -101,7 +139,7 @@ export default function QuotesPage() {
               <div className="p-5">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-mono text-gray-400">{req.request_number}</span>
+                  <span className="text-sm font-mono text-gray-500">{req.request_number}</span>
                   <Badge variant={status.variant} size="sm" dot>
                     {status.label}
                   </Badge>
@@ -120,7 +158,7 @@ export default function QuotesPage() {
                 </div>
 
                 {/* Details */}
-                <div className="flex flex-wrap gap-3 text-sm text-gray-500">
+                <div className="flex flex-wrap gap-3 text-sm text-gray-600">
                   <span className="flex items-center gap-1">
                     <Calendar className="w-3.5 h-3.5" />
                     {new Date(req.departure_datetime).toLocaleDateString('ko-KR', {

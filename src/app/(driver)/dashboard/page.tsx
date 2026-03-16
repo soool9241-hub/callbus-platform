@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import {
   MapPin,
@@ -12,6 +12,7 @@ import {
   Bell,
   Bus,
   Search,
+  Loader2,
 } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -19,6 +20,9 @@ import { Select } from '@/components/ui/Select';
 import { Badge } from '@/components/ui/Badge';
 import { mockQuoteRequests, mockUsers } from '@/lib/mock-data';
 import { VEHICLE_TYPES } from '@/types';
+import type { QuoteRequest } from '@/types';
+import { useAuth } from '@/hooks/useAuth';
+import { getQuoteRequests, subscribeToQuoteRequests } from '@/lib/supabase-db';
 
 const regionOptions = [
   { value: '', label: '전체 지역' },
@@ -81,12 +85,51 @@ function formatTime(dateStr: string): string {
 }
 
 export default function DriverDashboardPage() {
+  const { isLoggedIn, loading: authLoading } = useAuth();
   const [regionFilter, setRegionFilter] = useState('');
   const [vehicleTypeFilter, setVehicleTypeFilter] = useState('');
   const [dateFilter, setDateFilter] = useState('');
+  const [allRequests, setAllRequests] = useState<QuoteRequest[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (authLoading) return;
+
+    async function fetchData() {
+      if (isLoggedIn) {
+        try {
+          const { data, error } = await getQuoteRequests({ status: 'open' });
+          if (error) throw error;
+          setAllRequests(data as QuoteRequest[]);
+        } catch (err) {
+          console.error('견적 요청 목록 로딩 실패:', err);
+          setAllRequests(mockQuoteRequests);
+        }
+      } else {
+        setAllRequests(mockQuoteRequests);
+      }
+      setLoading(false);
+    }
+
+    fetchData();
+
+    // Subscribe to new requests in real-time
+    if (isLoggedIn) {
+      const channel = subscribeToQuoteRequests((payload) => {
+        const newReq = payload.new as QuoteRequest;
+        if (newReq.status === 'open' || newReq.status === 'in_progress') {
+          setAllRequests((prev) => [newReq, ...prev]);
+        }
+      });
+
+      return () => {
+        channel.unsubscribe();
+      };
+    }
+  }, [isLoggedIn, authLoading]);
 
   // Only show open requests
-  const openRequests = mockQuoteRequests.filter(
+  const openRequests = allRequests.filter(
     (r) => r.status === 'open' || r.status === 'in_progress'
   );
 
@@ -116,8 +159,16 @@ export default function DriverDashboardPage() {
 
   const notificationCount = openRequests.length;
 
+  if (loading || authLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-green-600" />
+      </div>
+    );
+  }
+
   return (
-    <div>
+    <div className="px-4 sm:px-6">
       {/* Page Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
@@ -130,7 +181,7 @@ export default function DriverDashboardPage() {
         </div>
         <div className="flex items-center gap-2">
           <Bell className="w-5 h-5 text-gray-400" />
-          <span className="text-sm text-gray-500">실시간 업데이트</span>
+          <span className="text-sm text-gray-600 hidden sm:inline">실시간 업데이트</span>
         </div>
       </div>
 
@@ -158,7 +209,7 @@ export default function DriverDashboardPage() {
               type="date"
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
-              className="block w-full rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-sm text-gray-900 transition-colors focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/20"
+              className="block w-full rounded-lg border border-gray-300 bg-white px-3.5 py-3 text-sm text-gray-900 min-h-[44px] transition-colors focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/20"
             />
           </div>
           {(regionFilter || vehicleTypeFilter || dateFilter) && (
@@ -215,7 +266,7 @@ export default function DriverDashboardPage() {
                         {req.status === 'open' ? '접수중' : '진행중'}
                       </Badge>
                     </div>
-                    <div className="flex items-center gap-1 text-sm text-gray-400">
+                    <div className="flex items-center gap-1 text-sm text-gray-500">
                       <Clock className="w-3.5 h-3.5" />
                       <span>{getTimeAgo(req.created_at)}</span>
                     </div>
@@ -234,7 +285,7 @@ export default function DriverDashboardPage() {
                       </p>
                       <div className="flex items-center my-1">
                         <ArrowRight className="w-3 h-3 text-gray-400 mr-1" />
-                        <span className="text-xs text-gray-400">
+                        <span className="text-xs text-gray-500">
                           {req.trip_type === 'round' ? '왕복' : '편도'}
                         </span>
                       </div>
@@ -277,14 +328,14 @@ export default function DriverDashboardPage() {
                   )}
 
                   {/* Bottom Row */}
-                  <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                    <div className="text-sm text-gray-500">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between pt-3 border-t border-gray-100 gap-3">
+                    <div className="text-sm text-gray-600">
                       견적 {req.quote_count}건 제출됨
                     </div>
-                    <Link href={`/quote-submit?requestId=${req.id}`}>
+                    <Link href={`/quote-submit?requestId=${req.id}`} className="w-full sm:w-auto">
                       <Button
-                        className="bg-green-600 hover:bg-green-700 active:bg-green-800 focus-visible:ring-green-500"
-                        size="sm"
+                        className="bg-green-600 hover:bg-green-700 active:bg-green-800 focus-visible:ring-green-500 w-full sm:w-auto min-h-[44px]"
+                        size="md"
                       >
                         견적 제출하기
                       </Button>
