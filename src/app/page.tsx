@@ -247,7 +247,7 @@ export default function HomePage() {
       {/* ================================================================ */}
       <section
         id="hero"
-        className="relative pt-16 bg-gradient-to-br from-[#1B6FF4] to-[#0B4FCC] text-white overflow-hidden"
+        className="relative pt-16 bg-gradient-to-br from-[#1B6FF4] to-[#0B4FCC] text-white overflow-clip"
       >
         {/* Decorative blobs */}
         <div className="absolute inset-0 opacity-10 pointer-events-none">
@@ -433,7 +433,14 @@ export default function HomePage() {
                 key={uc.tag}
                 onClick={() => {
                   setPurpose(uc.tag);
-                  setTimeout(() => scrollTo('#quote-form'), 50);
+                  setTimeout(() => {
+                    const form = document.getElementById('quote-form');
+                    if (form) {
+                      const rect = form.getBoundingClientRect();
+                      const absTop = rect.top + window.pageYOffset - 80;
+                      window.scrollTo({ top: absTop, behavior: 'smooth' });
+                    }
+                  }, 100);
                 }}
                 className={`flex flex-col items-center gap-3 p-5 sm:p-6 rounded-2xl transition-all cursor-pointer group ${
                   purpose === uc.tag
