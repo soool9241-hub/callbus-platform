@@ -21,6 +21,7 @@ const vehicleTypeOptions = [
 
 export default function NewShuttlePage() {
   const router = useRouter();
+  const [toast, setToast] = useState('');
   const [routeName, setRouteName] = useState('');
   const [departure, setDeparture] = useState('');
   const [destination] = useState('경기도 가평군 청평면 호반로 123 (가평 힐링 펜션)');
@@ -30,8 +31,11 @@ export default function NewShuttlePage() {
   const [pricePerSeat, setPricePerSeat] = useState('');
 
   const handleSubmit = () => {
-    alert('셔틀 노선이 등록되었습니다. (데모)');
-    router.push('/pension/shuttles');
+    setToast('셔틀 노선이 등록되었습니다.');
+    setTimeout(() => {
+      setToast('');
+      router.push('/pension/shuttles');
+    }, 2000);
   };
 
   return (
@@ -110,6 +114,12 @@ export default function NewShuttlePage() {
           </Button>
         </div>
       </div>
+
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-lg z-50 animate-fade-in">
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

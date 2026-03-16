@@ -16,6 +16,7 @@ import type { Reservation } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
 import { useStore } from '@/store/useStore';
 import { getReservations } from '@/lib/supabase-db';
+import { useRouter } from 'next/navigation';
 import {
   MapPin,
   Calendar,
@@ -64,11 +65,13 @@ function getStatusLabel(status: string): string {
 }
 
 export default function ReservationsPage() {
+  const router = useRouter();
   const { isLoggedIn, loading: authLoading } = useAuth();
   const { currentUser } = useStore();
   const [activeTab, setActiveTab] = useState<TabFilter>('all');
   const [reservations, setReservations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState('');
 
   useEffect(() => {
     if (authLoading) return;
@@ -98,16 +101,18 @@ export default function ReservationsPage() {
     return r.status === activeTab;
   });
 
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2000); };
+
   const handleAction = (action: string, rsv: Reservation) => {
     switch (action) {
       case 'pay':
-        alert(`잔금 결제: ${formatPrice(rsv.remaining_amount)}`);
+        showToast(`잔금 결제: ${formatPrice(rsv.remaining_amount)}`);
         break;
       case 'cancel':
-        alert('예약을 취소하시겠습니까?');
+        showToast('예약을 취소하시겠습니까?');
         break;
       case 'review':
-        alert('리뷰 작성 페이지로 이동합니다.');
+        router.push('/customer/reviews/new');
         break;
     }
   };
@@ -289,6 +294,12 @@ export default function ReservationsPage() {
           );
         })}
       </div>
+
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-lg z-50 animate-fade-in">
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

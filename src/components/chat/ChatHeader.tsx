@@ -27,6 +27,7 @@ export function ChatHeader({
 }: ChatHeaderProps) {
   const router = useRouter();
   const [showMenu, setShowMenu] = useState(false);
+  const [toast, setToast] = useState('');
 
   const handleBack = () => {
     if (backHref) {
@@ -96,7 +97,8 @@ export function ChatHeader({
             <button
               onClick={() => {
                 setShowMenu(false);
-                // TODO: 신고 기능
+                setToast('신고가 접수되었습니다. 검토 후 조치하겠습니다.');
+                setTimeout(() => setToast(''), 2000);
               }}
               className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
             >
@@ -115,6 +117,12 @@ export function ChatHeader({
             </button>
           </div>
         </>
+      )}
+
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-lg z-50 animate-fade-in">
+          {toast}
+        </div>
       )}
     </div>
   );

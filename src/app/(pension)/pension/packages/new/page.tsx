@@ -68,6 +68,7 @@ const tripTypeOptions = [
 export default function NewPackagePage() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
+  const [toast, setToast] = useState('');
 
   // Step 1: Accommodation
   const [selectedPension, setSelectedPension] = useState('');
@@ -110,8 +111,11 @@ export default function NewPackagePage() {
   };
 
   const handleSubmit = () => {
-    alert('패키지가 등록되었습니다. (데모)');
-    router.push('/pension/packages');
+    setToast('패키지가 등록되었습니다.');
+    setTimeout(() => {
+      setToast('');
+      router.push('/pension/packages');
+    }, 2000);
   };
 
   return (
@@ -406,6 +410,12 @@ export default function NewPackagePage() {
           )}
         </div>
       </div>
+
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-lg z-50 animate-fade-in">
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

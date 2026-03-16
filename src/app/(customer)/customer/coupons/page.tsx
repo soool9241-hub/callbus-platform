@@ -78,6 +78,7 @@ const mockCoupons: Coupon[] = [
 
 export default function CouponsPage() {
   const [activeTab, setActiveTab] = useState<CouponStatus>('available');
+  const [toast, setToast] = useState('');
 
   const filtered = mockCoupons.filter((c) => c.status === activeTab);
 
@@ -171,7 +172,7 @@ export default function CouponsPage() {
                       <Button
                         variant="accent"
                         size="sm"
-                        onClick={() => alert('쿠폰이 적용되었습니다. 예약 시 자동 할인됩니다.')}
+                        onClick={() => { setToast('쿠폰이 적용되었습니다. 예약 시 자동 할인됩니다.'); setTimeout(() => setToast(''), 2000); }}
                       >
                         사용하기
                       </Button>
@@ -187,6 +188,12 @@ export default function CouponsPage() {
           );
         })}
       </div>
+
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-lg z-50 animate-fade-in">
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

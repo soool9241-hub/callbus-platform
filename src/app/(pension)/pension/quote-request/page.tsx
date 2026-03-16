@@ -27,6 +27,7 @@ const vehicleTypeOptions = [
 
 export default function QuoteRequestPage() {
   const router = useRouter();
+  const [toast, setToast] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [departureAddress, setDepartureAddress] = useState('');
@@ -36,8 +37,11 @@ export default function QuoteRequestPage() {
   const [vehicleType, setVehicleType] = useState('');
 
   const handleSubmit = () => {
-    alert('대리 견적 요청이 전송되었습니다. (데모)');
-    router.push('/pension/dashboard');
+    setToast('대리 견적 요청이 전송되었습니다.');
+    setTimeout(() => {
+      setToast('');
+      router.push('/pension/dashboard');
+    }, 2000);
   };
 
   return (
@@ -133,6 +137,12 @@ export default function QuoteRequestPage() {
           </Button>
         </div>
       </div>
+
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-lg z-50 animate-fade-in">
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

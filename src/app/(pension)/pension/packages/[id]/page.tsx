@@ -68,11 +68,15 @@ function getStatusBadge(status: string) {
 export default function PackageDetailPage() {
   const router = useRouter();
   const [pkg] = useState(mockPackage);
+  const [toast, setToast] = useState('');
 
   const handleDelete = () => {
     if (confirm('이 패키지를 삭제하시겠습니까?')) {
-      alert('패키지가 삭제되었습니다. (데모)');
-      router.push('/pension/packages');
+      setToast('패키지가 삭제되었습니다.');
+      setTimeout(() => {
+        setToast('');
+        router.push('/pension/packages');
+      }, 2000);
     }
   };
 
@@ -256,6 +260,12 @@ export default function PackageDetailPage() {
           </Card>
         </div>
       </div>
+
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-lg z-50 animate-fade-in">
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

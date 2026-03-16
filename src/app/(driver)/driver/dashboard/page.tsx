@@ -332,7 +332,7 @@ export default function DriverDashboardPage() {
                     <div className="text-sm text-gray-600">
                       견적 {req.quote_count}건 제출됨
                     </div>
-                    <Link href={`/quote-submit?requestId=${req.id}`} className="w-full sm:w-auto">
+                    <Link href={`/driver/quote-submit?requestId=${req.id}`} className="w-full sm:w-auto">
                       <Button
                         className="bg-green-600 hover:bg-green-700 active:bg-green-800 focus-visible:ring-green-500 w-full sm:w-auto min-h-[44px]"
                         size="md"

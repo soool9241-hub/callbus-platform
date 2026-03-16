@@ -30,16 +30,16 @@ const roleLabels: Record<Role, string> = {
 };
 
 const driverNavItems = [
-  { label: '홈', href: '/dashboard', icon: LayoutDashboard },
-  { label: '견적 제출', href: '/quote-submit', icon: FileText },
-  { label: '내 예약', href: '/reservations', icon: Calendar },
-  { label: '일정 관리', href: '/schedule', icon: CalendarDays },
-  { label: '차량 관리', href: '/vehicles', icon: Truck },
-  { label: '정산', href: '/settlements', icon: Wallet },
-  { label: '리뷰', href: '/reviews', icon: Star },
-  { label: '채팅', href: '/chat', icon: MessageSquare },
-  { label: '알림', href: '/notifications', icon: Bell },
-  { label: '마이페이지', href: '/mypage', icon: User },
+  { label: '홈', href: '/driver/dashboard', icon: LayoutDashboard },
+  { label: '견적 제출', href: '/driver/quote-submit', icon: FileText },
+  { label: '내 예약', href: '/driver/reservations', icon: Calendar },
+  { label: '일정 관리', href: '/driver/schedule', icon: CalendarDays },
+  { label: '차량 관리', href: '/driver/vehicles', icon: Truck },
+  { label: '정산', href: '/driver/settlements', icon: Wallet },
+  { label: '리뷰', href: '/driver/reviews', icon: Star },
+  { label: '채팅', href: '/driver/chat', icon: MessageSquare },
+  { label: '알림', href: '/driver/notifications', icon: Bell },
+  { label: '마이페이지', href: '/driver/mypage', icon: User },
 ];
 
 interface DriverLayoutProps {
@@ -71,7 +71,7 @@ export default function DriverLayout({ children }: DriverLayoutProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo - green accent for driver */}
-            <Link href="/dashboard" className="flex items-center gap-1 text-2xl font-bold text-green-600">
+            <Link href="/driver/dashboard" className="flex items-center gap-1 text-2xl font-bold text-green-600">
               🚌 콜버스
             </Link>
 
@@ -136,7 +136,7 @@ export default function DriverLayout({ children }: DriverLayoutProps) {
               {/* User Avatar / Login */}
               {currentUser ? (
                 <Link
-                  href="/mypage"
+                  href="/driver/mypage"
                   className="flex items-center justify-center w-9 h-9 rounded-full bg-green-100 text-green-600 hover:bg-green-200 transition-colors"
                 >
                   <User className="w-5 h-5" />

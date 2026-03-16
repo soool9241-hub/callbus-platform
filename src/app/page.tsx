@@ -156,7 +156,7 @@ export default function HomePage() {
     if (passengers) params.set('passengers', passengers);
     if (vehicleType) params.set('vehicleType', vehicleType);
     if (activeTab === 'package') params.set('type', 'package');
-    router.push(`/quote-request?${params.toString()}`);
+    router.push(`/customer/quote-request?${params.toString()}`);
   }
 
   return (
@@ -482,7 +482,7 @@ export default function HomePage() {
                       <span className="text-sm text-gray-500">/1인</span>
                     </div>
                     <Link
-                      href="/packages"
+                      href="/customer/packages"
                       className="text-sm font-semibold text-[#1B6FF4] hover:underline flex items-center gap-0.5"
                     >
                       상세보기 <ChevronRight className="w-4 h-4" />
@@ -495,7 +495,7 @@ export default function HomePage() {
 
           <div className="text-center mt-10">
             <Link
-              href="/packages"
+              href="/customer/packages"
               className="inline-flex items-center gap-2 px-8 py-3.5 bg-[#FF6B35] hover:bg-[#e55a28] text-white font-bold rounded-xl transition-colors"
             >
               🏕️ 전체 패키지 보기
@@ -634,7 +634,7 @@ export default function HomePage() {
               🏕️ 펜션 사업주 가입
             </Link>
             <Link
-              href="/packages"
+              href="/customer/packages"
               className="inline-flex items-center gap-1 text-white/90 hover:text-white font-medium underline underline-offset-4 transition-colors"
             >
               자세히 알아보기 <ArrowRight className="w-4 h-4" />
@@ -687,12 +687,12 @@ export default function HomePage() {
               <h4 className="text-white font-semibold mb-4 text-sm">서비스</h4>
               <ul className="space-y-2.5 text-sm">
                 <li>
-                  <Link href="/quote-request" className="hover:text-white transition-colors">
+                  <Link href="/customer/quote-request" className="hover:text-white transition-colors">
                     버스 대절
                   </Link>
                 </li>
                 <li>
-                  <Link href="/packages" className="hover:text-white transition-colors">
+                  <Link href="/customer/packages" className="hover:text-white transition-colors">
                     펜션+버스 패키지
                   </Link>
                 </li>

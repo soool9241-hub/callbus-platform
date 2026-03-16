@@ -39,6 +39,7 @@ const amenitiesList = [
 
 export default function NewPensionPage() {
   const router = useRouter();
+  const [toast, setToast] = useState('');
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
   const [region, setRegion] = useState('');
@@ -59,8 +60,11 @@ export default function NewPensionPage() {
   };
 
   const handleSubmit = () => {
-    alert('펜션이 등록되었습니다. (데모)');
-    router.push('/pension/pensions');
+    setToast('펜션이 등록되었습니다.');
+    setTimeout(() => {
+      setToast('');
+      router.push('/pension/pensions');
+    }, 2000);
   };
 
   return (
@@ -202,6 +206,12 @@ export default function NewPensionPage() {
           </Button>
         </div>
       </div>
+
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-lg z-50 animate-fade-in">
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

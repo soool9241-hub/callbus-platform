@@ -26,22 +26,24 @@ export default function WriteReviewPage() {
   const [rating, setRating] = useState(0);
   const [reviewText, setReviewText] = useState('');
   const [photos, setPhotos] = useState<string[]>([]);
+  const [toast, setToast] = useState('');
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2000); };
 
   const handleSubmit = () => {
     if (!selectedReservation) {
-      alert('예약을 선택해주세요.');
+      showToast('예약을 선택해주세요.');
       return;
     }
     if (rating === 0) {
-      alert('별점을 선택해주세요.');
+      showToast('별점을 선택해주세요.');
       return;
     }
     if (!reviewText.trim()) {
-      alert('리뷰 내용을 입력해주세요.');
+      showToast('리뷰 내용을 입력해주세요.');
       return;
     }
-    alert('리뷰가 등록되었습니다. 감사합니다!');
-    router.back();
+    showToast('리뷰가 등록되었습니다. 감사합니다!');
+    setTimeout(() => router.back(), 1500);
   };
 
   return (
@@ -132,7 +134,7 @@ export default function WriteReviewPage() {
         <label className="mb-1.5 block text-sm font-medium text-gray-700">사진 첨부</label>
         <div className="flex gap-2">
           <button
-            onClick={() => alert('사진 업로드 기능은 준비 중입니다.')}
+            onClick={() => showToast('사진 업로드 기능은 준비 중입니다.')}
             className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-400 hover:border-[#1B6FF4] hover:text-[#1B6FF4] transition-colors"
           >
             <Camera className="w-6 h-6 mb-1" />
@@ -151,6 +153,12 @@ export default function WriteReviewPage() {
       >
         리뷰 등록하기
       </Button>
+
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-lg z-50 animate-fade-in">
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

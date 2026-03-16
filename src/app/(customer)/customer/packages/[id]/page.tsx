@@ -66,6 +66,7 @@ function formatPrice(n: number): string {
 export default function PackageDetailPage() {
   const router = useRouter();
   const [passengers, setPassengers] = useState(1);
+  const [toast, setToast] = useState('');
   const pkg = packageData;
   const totalPrice = pkg.pricing.totalPerPerson * passengers;
 
@@ -200,7 +201,7 @@ export default function PackageDetailPage() {
           variant="accent"
           fullWidth
           size="lg"
-          onClick={() => alert('예약이 접수되었습니다!')}
+          onClick={() => { setToast('예약이 접수되었습니다!'); setTimeout(() => setToast(''), 2000); }}
         >
           예약하기
         </Button>
@@ -227,6 +228,12 @@ export default function PackageDetailPage() {
           ))}
         </div>
       </div>
+
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-lg z-50 animate-fade-in">
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

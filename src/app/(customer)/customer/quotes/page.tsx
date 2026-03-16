@@ -80,7 +80,7 @@ export default function QuotesPage() {
   });
 
   const handleClick = (req: QuoteRequest) => {
-    router.push(`/quotes/${req.id}`);
+    router.push(`/customer/quotes/${req.id}`);
   };
 
   if (loading || authLoading) {

@@ -40,6 +40,7 @@ export default function MyPage() {
   const [editName, setEditName] = useState('');
   const [editPhone, setEditPhone] = useState('');
   const [saving, setSaving] = useState(false);
+  const [toastMsg, setToastMsg] = useState('');
 
   useEffect(() => {
     if (!isLoggedIn || !currentUser) return;
@@ -111,7 +112,8 @@ export default function MyPage() {
   };
 
   const handleMenuClick = (label: string) => {
-    alert(`${label} 페이지는 준비 중입니다.`);
+    setToastMsg(`${label} 페이지는 준비 중입니다.`);
+    setTimeout(() => setToastMsg(''), 2000);
   };
 
   if (authLoading) {
@@ -141,14 +143,14 @@ export default function MyPage() {
     {
       icon: FileText,
       label: '내 견적 요청',
-      href: '/quotes',
+      href: '/customer/quotes',
       badge: quoteCount > 0 ? quoteCount.toString() : null,
       badgeVariant: 'info' as const,
     },
     {
       icon: Calendar,
       label: '내 예약',
-      href: '/reservations',
+      href: '/customer/reservations',
       badge: reservationCount > 0 ? reservationCount.toString() : null,
       badgeVariant: 'success' as const,
     },
@@ -317,6 +319,12 @@ export default function MyPage() {
         <LogOut className="w-4 h-4" />
         로그아웃
       </button>
+
+      {toastMsg && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-lg z-50 animate-fade-in">
+          {toastMsg}
+        </div>
+      )}
     </div>
   );
 }

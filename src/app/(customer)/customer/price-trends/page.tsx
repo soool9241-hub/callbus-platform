@@ -155,7 +155,7 @@ export default function PriceTrendsPage() {
         variant="accent"
         fullWidth
         size="lg"
-        onClick={() => router.push('/quote-request')}
+        onClick={() => router.push('/customer/quote-request')}
       >
         이 노선 견적 요청
         <ArrowRight className="w-4 h-4" />

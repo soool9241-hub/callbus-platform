@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -82,6 +82,8 @@ export default function ReservationDetailPage() {
   const router = useRouter();
   const rsv = reservationData;
   const status = statusConfig[rsv.status] || statusConfig.confirmed;
+  const [toast, setToast] = useState('');
+  const showToast = useCallback((msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2000); }, []);
 
   return (
     <div className="py-2 px-4 sm:px-6 max-w-2xl mx-auto">
@@ -241,29 +243,35 @@ export default function ReservationDetailPage() {
       <div className="flex flex-col gap-2 mb-6">
         {(rsv.status === 'confirmed' || rsv.status === 'deposit_paid') && (
           <>
-            <Button variant="primary" fullWidth size="lg" onClick={() => alert('잔금 결제 페이지로 이동합니다.')}>
+            <Button variant="primary" fullWidth size="lg" onClick={() => showToast('잔금 결제 페이지로 이동합니다.')}>
               <CreditCard className="w-4 h-4" />
               잔금 결제 ({formatPrice(rsv.payment.remaining)})
             </Button>
-            <Button variant="danger" fullWidth size="md" onClick={() => alert('예약을 취소하시겠습니까?')}>
+            <Button variant="danger" fullWidth size="md" onClick={() => showToast('예약을 취소하시겠습니까?')}>
               <X className="w-4 h-4" />
               예약 취소
             </Button>
           </>
         )}
         {rsv.status === 'in_progress' && (
-          <Button variant="primary" fullWidth size="lg" onClick={() => alert('실시간 위치 추적 화면으로 이동합니다.')}>
+          <Button variant="primary" fullWidth size="lg" onClick={() => showToast('실시간 위치 추적 화면으로 이동합니다.')}>
             <Navigation className="w-4 h-4" />
             실시간 위치 확인
           </Button>
         )}
         {rsv.status === 'completed' && (
-          <Button variant="accent" fullWidth size="lg" onClick={() => router.push('/reviews/new')}>
+          <Button variant="accent" fullWidth size="lg" onClick={() => router.push('/customer/reviews/new')}>
             <Star className="w-4 h-4" />
             리뷰 작성
           </Button>
         )}
       </div>
+
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-lg z-50 animate-fade-in">
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

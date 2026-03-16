@@ -110,7 +110,7 @@ export default function FeeCalculatorPage() {
       </Card>
 
       {/* CTA */}
-      <Link href="/quote-submit">
+      <Link href="/driver/quote-submit">
         <Button
           fullWidth
           size="lg"

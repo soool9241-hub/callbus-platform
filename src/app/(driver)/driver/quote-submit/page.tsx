@@ -71,6 +71,7 @@ function QuoteSubmitContent() {
   const [vatIncluded, setVatIncluded] = useState(true);
   const [message, setMessage] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [toast, setToast] = useState('');
 
   useEffect(() => {
     if (authLoading) return;
@@ -137,7 +138,7 @@ function QuoteSubmitContent() {
         if (error) throw error;
       } catch (err) {
         console.error('견적 제출 실패:', err);
-        alert('견적 제출 중 오류가 발생했습니다. 다시 시도해주세요.');
+        setToast('견적 제출 중 오류가 발생했습니다. 다시 시도해주세요.'); setTimeout(() => setToast(''), 2000);
         setSubmitting(false);
         return;
       }
@@ -159,7 +160,7 @@ function QuoteSubmitContent() {
     return (
       <div className="py-20 text-center text-gray-500">
         <p>견적 요청을 찾을 수 없습니다.</p>
-        <Link href="/dashboard" className="text-green-600 hover:underline mt-2 inline-block">
+        <Link href="/driver/dashboard" className="text-green-600 hover:underline mt-2 inline-block">
           목록으로 돌아가기
         </Link>
       </div>
@@ -181,7 +182,7 @@ function QuoteSubmitContent() {
               견적 요청번호: <span className="font-semibold">{request.request_number}</span>
             </p>
             <div className="flex gap-3 mt-4">
-              <Link href="/dashboard">
+              <Link href="/driver/dashboard">
                 <Button className="bg-green-600 hover:bg-green-700 active:bg-green-800 focus-visible:ring-green-500">
                   견적 목록으로 돌아가기
                 </Button>
@@ -197,7 +198,7 @@ function QuoteSubmitContent() {
     <div>
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/dashboard">
+        <Link href="/driver/dashboard">
           <Button variant="ghost" size="sm">
             <ArrowLeft className="w-4 h-4" />
           </Button>
@@ -392,7 +393,7 @@ function QuoteSubmitContent() {
 
                 {/* Submit */}
                 <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
-                  <Link href="/dashboard">
+                  <Link href="/driver/dashboard">
                     <Button variant="outline" type="button">
                       취소
                     </Button>
@@ -500,6 +501,11 @@ function QuoteSubmitContent() {
           </Card>
         </div>
       </div>
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-lg z-50 animate-fade-in">
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

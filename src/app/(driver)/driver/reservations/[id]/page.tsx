@@ -66,7 +66,7 @@ export default function ReservationDetailPage() {
     <div className="px-4 sm:px-6">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/reservations" className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+        <Link href="/driver/reservations" className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
           <ArrowLeft className="w-5 h-5 text-gray-600" />
         </Link>
         <div>
@@ -236,7 +236,7 @@ export default function ReservationDetailPage() {
           <Clock className="w-5 h-5" />
           운행 시작
         </Button>
-        <Link href="/chat/res-001" className="flex-1">
+        <Link href="/driver/chat/res-001" className="flex-1">
           <Button variant="outline" size="lg" fullWidth>
             <MessageSquare className="w-5 h-5" />
             고객 채팅

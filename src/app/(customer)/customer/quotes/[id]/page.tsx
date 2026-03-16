@@ -128,7 +128,7 @@ export default function QuoteComparisonPage() {
     return (
       <div className="py-20 text-center text-gray-500">
         <p>견적 요청을 찾을 수 없습니다.</p>
-        <Link href="/quotes" className="text-blue-600 hover:underline mt-2 inline-block">
+        <Link href="/customer/quotes" className="text-blue-600 hover:underline mt-2 inline-block">
           목록으로 돌아가기
         </Link>
       </div>
@@ -183,7 +183,7 @@ export default function QuoteComparisonPage() {
     <div className="py-2 px-4 sm:px-6">
       {/* Back */}
       <Link
-        href="/quotes"
+        href="/customer/quotes"
         className="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-800 mb-4"
       >
         <ChevronLeft className="w-4 h-4" />

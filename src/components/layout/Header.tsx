@@ -19,16 +19,16 @@ const roleLabels: Record<Role, string> = {
 
 const customerNavItems = [
   { label: '홈', href: '/' },
-  { label: '견적신청', href: '/quote-request' },
-  { label: '내 예약', href: '/reservations' },
-  { label: '마이페이지', href: '/mypage' },
+  { label: '견적신청', href: '/customer/quote-request' },
+  { label: '내 예약', href: '/customer/reservations' },
+  { label: '마이페이지', href: '/customer/mypage' },
 ];
 
 const driverNavItems = [
-  { label: '견적요청', href: '/dashboard' },
-  { label: '차량관리', href: '/vehicles' },
-  { label: '정산', href: '/settlements' },
-  { label: '마이페이지', href: '/mypage' },
+  { label: '견적요청', href: '/driver/dashboard' },
+  { label: '차량관리', href: '/driver/vehicles' },
+  { label: '정산', href: '/driver/settlements' },
+  { label: '마이페이지', href: '/driver/mypage' },
 ];
 
 const pensionNavItems = [
@@ -171,7 +171,15 @@ export default function Header() {
                       <p className="text-xs text-gray-500">{currentUser.email}</p>
                     </div>
                     <Link
-                      href="/mypage"
+                      href={
+                        currentRole === 'customer'
+                          ? '/customer/mypage'
+                          : currentRole === 'driver'
+                            ? '/driver/mypage'
+                            : currentRole === 'pension_owner'
+                              ? '/pension/settings'
+                              : '/admin/settings'
+                      }
                       onClick={() => setUserMenuOpen(false)}
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                     >

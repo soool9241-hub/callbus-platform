@@ -172,7 +172,7 @@ export default function PackagesPage() {
       {/* Package Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {filtered.map((pkg) => (
-          <Card key={pkg.id} hover padding="none" className="overflow-hidden cursor-pointer" onClick={() => router.push(`/packages/${pkg.id}`)}>
+          <Card key={pkg.id} hover padding="none" className="overflow-hidden cursor-pointer" onClick={() => router.push(`/customer/packages/${pkg.id}`)}>
             {/* Photo placeholder */}
             <div className={`h-40 bg-gradient-to-br ${pkg.gradient} flex items-center justify-center relative`}>
               <span className="text-5xl">{pkg.emoji}</span>
@@ -216,7 +216,7 @@ export default function PackagesPage() {
                 fullWidth
                 size="sm"
                 className="mt-3"
-                onClick={(e) => { e.stopPropagation(); router.push(`/packages/${pkg.id}`); }}
+                onClick={(e) => { e.stopPropagation(); router.push(`/customer/packages/${pkg.id}`); }}
               >
                 상세보기
               </Button>

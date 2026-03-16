@@ -1,9 +1,11 @@
 'use client';
 
+import toast from 'react-hot-toast';
+
 export default function Footer() {
   const handleFooterLink = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
-    alert('준비 중입니다');
+    toast('준비 중입니다', { icon: 'ℹ️' });
   };
 
   return (

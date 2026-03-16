@@ -40,9 +40,9 @@ const bankInfo = {
 };
 
 const quickLinks = [
-  { label: '차량 관리', href: '/vehicles', icon: Truck, color: 'text-[#1B6FF4]', bg: 'bg-blue-50' },
-  { label: '정산 내역', href: '/settlements', icon: Wallet, color: 'text-purple-600', bg: 'bg-purple-50' },
-  { label: '리뷰 관리', href: '/reviews', icon: Star, color: 'text-yellow-600', bg: 'bg-yellow-50' },
+  { label: '차량 관리', href: '/driver/vehicles', icon: Truck, color: 'text-[#1B6FF4]', bg: 'bg-blue-50' },
+  { label: '정산 내역', href: '/driver/settlements', icon: Wallet, color: 'text-purple-600', bg: 'bg-purple-50' },
+  { label: '리뷰 관리', href: '/driver/reviews', icon: Star, color: 'text-yellow-600', bg: 'bg-yellow-50' },
   { label: '보험 재검증', href: '#', icon: ShieldCheck, color: 'text-[#10B981]', bg: 'bg-green-50' },
 ];
 

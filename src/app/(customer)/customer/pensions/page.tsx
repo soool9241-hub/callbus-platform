@@ -98,6 +98,7 @@ export default function PensionsPage() {
   const router = useRouter();
   const [region, setRegion] = useState('');
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
+  const [toast, setToast] = useState('');
 
   const toggleAmenity = (amenity: string) => {
     setSelectedAmenities((prev) =>
@@ -165,7 +166,7 @@ export default function PensionsPage() {
             hover
             padding="none"
             className="overflow-hidden cursor-pointer"
-            onClick={() => alert(`${pension.name} 상세 페이지는 준비 중입니다.`)}
+            onClick={() => { setToast(`${pension.name} 상세 페이지는 준비 중입니다.`); setTimeout(() => setToast(''), 2000); }}
           >
             {/* Photo placeholder */}
             <div className={`h-40 bg-gradient-to-br ${pension.gradient} flex items-center justify-center relative`}>
@@ -196,7 +197,7 @@ export default function PensionsPage() {
                 <Button
                   variant="primary"
                   size="sm"
-                  onClick={(e) => { e.stopPropagation(); alert(`${pension.name} 상세 페이지는 준비 중입니다.`); }}
+                  onClick={(e) => { e.stopPropagation(); { setToast(`${pension.name} 상세 페이지는 준비 중입니다.`); setTimeout(() => setToast(''), 2000); }; }}
                 >
                   상세보기
                 </Button>
@@ -210,6 +211,12 @@ export default function PensionsPage() {
         <div className="text-center py-16 text-gray-400">
           <MapPin className="w-12 h-12 mx-auto mb-3 opacity-50" />
           <p>검색 조건에 맞는 펜션이 없습니다.</p>
+        </div>
+      )}
+
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-lg z-50 animate-fade-in">
+          {toast}
         </div>
       )}
     </div>

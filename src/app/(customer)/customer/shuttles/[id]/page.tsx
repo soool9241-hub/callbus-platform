@@ -54,6 +54,7 @@ export default function ShuttleDetailPage() {
   const router = useRouter();
   const [selectedDate, setSelectedDate] = useState('');
   const [seats, setSeats] = useState(1);
+  const [toast, setToast] = useState('');
   const shuttle = shuttleData;
 
   const selectedAvail = dateAvailability.find((d) => d.date === selectedDate);
@@ -173,7 +174,7 @@ export default function ShuttleDetailPage() {
               variant="accent"
               fullWidth
               size="lg"
-              onClick={() => alert('좌석 예약이 완료되었습니다!')}
+              onClick={() => { setToast('좌석 예약이 완료되었습니다!'); setTimeout(() => setToast(''), 2000); }}
             >
               좌석 예약하기
             </Button>
@@ -199,6 +200,12 @@ export default function ShuttleDetailPage() {
           <span>체크아웃: <strong>{shuttle.pension.checkOut}</strong></span>
         </div>
       </Card>
+
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-lg z-50 animate-fade-in">
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

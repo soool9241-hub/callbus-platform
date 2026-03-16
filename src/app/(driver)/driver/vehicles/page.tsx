@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Bus,
   Plus,
@@ -50,6 +50,7 @@ export default function VehiclesPage() {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [toast, setToast] = useState('');
 
   useEffect(() => {
     if (authLoading) return;
@@ -200,7 +201,7 @@ export default function VehiclesPage() {
           }
         } catch (err) {
           console.error('차량 등록 실패:', err);
-          alert('차량 등록 중 오류가 발생했습니다.');
+          setToast('차량 등록 중 오류가 발생했습니다.'); setTimeout(() => setToast(''), 2000);
         }
       } else {
         const newVehicle: Vehicle = {
@@ -441,6 +442,11 @@ export default function VehiclesPage() {
           </div>
         </div>
       </Modal>
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-lg z-50 animate-fade-in">
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

@@ -26,6 +26,8 @@ const bankOptions = [
 ];
 
 export default function SettingsPage() {
+  const [toast, setToast] = useState('');
+
   // Business profile
   const [businessName, setBusinessName] = useState('가평힐링펜션');
   const [businessNumber, setBusinessNumber] = useState('123-45-67890');
@@ -49,7 +51,8 @@ export default function SettingsPage() {
   const [contactEmail, setContactEmail] = useState('pension@example.com');
 
   const handleSave = () => {
-    alert('설정이 저장되었습니다. (데모)');
+    setToast('설정이 저장되었습니다.');
+    setTimeout(() => setToast(''), 2000);
   };
 
   const toggleSwitch = (value: boolean, setter: (v: boolean) => void) => (
@@ -231,6 +234,12 @@ export default function SettingsPage() {
           </Button>
         </div>
       </div>
+
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-lg z-50 animate-fade-in">
+          {toast}
+        </div>
+      )}
     </div>
   );
 }
