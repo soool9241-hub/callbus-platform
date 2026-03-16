@@ -35,18 +35,8 @@ import {
 /* ------------------------------------------------------------------ */
 
 const vehicleTypes = [
-  { name: '10인승 밴', emoji: '🚐', seats: '10인승', price: '12만~', amenities: ['USB'] },
-  { name: '14인승 밴', emoji: '🚐', seats: '14인승', price: '15만~', amenities: ['USB'] },
-  { name: '16인승 미니우등', emoji: '🚐', seats: '16인승', price: '20만~', amenities: ['USB', 'TV'] },
-  { name: '19인승 미니우등', emoji: '🚐', seats: '19인승', price: '25만~', amenities: ['USB', 'TV'] },
-  { name: '24인승 미니버스', emoji: '🚌', seats: '24인승', price: '30만~', amenities: ['USB', 'TV'] },
-  { name: '24인승 미니썬롱', emoji: '🚌', seats: '24인승', price: '33만~', amenities: ['USB', 'TV', 'WiFi'] },
-  { name: '21인승 중형우등', emoji: '🚌', seats: '21인승', price: '38만~', amenities: ['USB', 'WiFi', 'TV'] },
-  { name: '33인승 중형', emoji: '🚌', seats: '33인승', price: '42만~', amenities: ['USB', 'TV'] },
-  { name: '41인승 대형', emoji: '🚍', seats: '41인승', price: '50만~', amenities: ['USB', 'TV', 'WiFi'] },
-  { name: '45인승 대형', emoji: '🚍', seats: '45인승', price: '55만~', amenities: ['USB', 'TV', 'WiFi'] },
-  { name: '28인승 대형우등', emoji: '✨', seats: '28인승', price: '70만~', amenities: ['USB', 'WiFi', 'TV', '냉장고'] },
-  { name: '21인승 대형프리미엄', emoji: '👑', seats: '21인승', price: '90만~', amenities: ['USB', 'WiFi', 'TV', '냉장고'] },
+  { name: '35인승 리무진버스', emoji: '✨', seats: '35인승', price: '문의', amenities: ['USB', 'WiFi', 'TV', '냉장고'] },
+  { name: '45인승 일반버스', emoji: '🚍', seats: '45인승', price: '문의', amenities: ['USB', 'TV', 'WiFi'] },
 ];
 
 const useCases = [
@@ -569,31 +559,34 @@ export default function HomePage() {
               간편하고 저렴한 버스대절
             </h2>
             <p className="text-gray-600 mt-3 text-base sm:text-lg">
-              12가지 차량 중 인원과 목적에 맞는 버스를 선택하세요
+              목적에 맞는 버스를 선택하세요
             </p>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
             {vehicleTypes.map((vt) => (
               <div
                 key={vt.name}
-                className="bg-white rounded-xl border border-gray-200 overflow-hidden cursor-pointer transition-all duration-200 hover:border-[#1B6FF4] hover:-translate-y-0.5 hover:shadow-lg group"
+                className="bg-white rounded-2xl border border-gray-200 overflow-hidden cursor-pointer transition-all duration-200 hover:border-[#1B6FF4] hover:-translate-y-1 hover:shadow-xl group"
               >
-                {/* Image placeholder - gradient simulating bus photo */}
-                <div className="h-28 bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center relative">
-                  <span className="text-4xl">{vt.emoji}</span>
-                  {/* Amenity badges */}
-                  <div className="absolute bottom-2 left-2 flex gap-1">
+                <div className="h-44 bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center relative">
+                  <span className="text-7xl">{vt.emoji}</span>
+                  <div className="absolute bottom-3 left-3 flex gap-1.5">
                     {vt.amenities.map((a) => (
-                      <span key={a} className="text-[10px] bg-white/90 text-gray-600 px-1.5 py-0.5 rounded font-medium">
+                      <span key={a} className="text-xs bg-white/90 text-gray-600 px-2 py-1 rounded-md font-medium shadow-sm">
                         {a}
                       </span>
                     ))}
                   </div>
                 </div>
-                <div className="p-4 text-center">
-                  <h3 className="font-bold text-gray-900 text-sm group-hover:text-[#1B6FF4] transition-colors">{vt.name}</h3>
-                  <p className="text-xs text-gray-500 mt-1">{vt.seats}</p>
-                  <p className="text-sm font-extrabold text-[#1B6FF4] mt-2">{vt.price}</p>
+                <div className="p-6 text-center">
+                  <h3 className="font-extrabold text-gray-900 text-xl group-hover:text-[#1B6FF4] transition-colors">{vt.name}</h3>
+                  <p className="text-sm text-gray-500 mt-1">{vt.seats}</p>
+                  <button
+                    onClick={() => { setVehicleType(vt.name); scrollTo('#quote-form'); }}
+                    className="mt-4 inline-flex items-center gap-1 px-6 py-2.5 bg-[#1B6FF4] text-white text-sm font-bold rounded-lg hover:bg-[#0B4FCC] transition-colors"
+                  >
+                    견적 받기 <ArrowRight className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
             ))}
