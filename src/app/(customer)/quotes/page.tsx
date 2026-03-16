@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { mockQuoteRequests } from '@/lib/mock-data';
@@ -43,6 +44,7 @@ function getVehicleLabel(key: string): string {
 }
 
 export default function QuotesPage() {
+  const router = useRouter();
   const { isLoggedIn, loading: authLoading } = useAuth();
   const { currentUser } = useStore();
   const [activeTab, setActiveTab] = useState<TabFilter>('all');
@@ -78,11 +80,7 @@ export default function QuotesPage() {
   });
 
   const handleClick = (req: QuoteRequest) => {
-    if (req.quote_count > 0) {
-      window.location.href = `/quotes/${req.id}`;
-    } else {
-      alert('아직 도착한 견적이 없습니다.');
-    }
+    router.push(`/quotes/${req.id}`);
   };
 
   if (loading || authLoading) {

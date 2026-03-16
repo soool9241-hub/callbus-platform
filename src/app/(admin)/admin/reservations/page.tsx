@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Filter,
   Eye,
@@ -14,154 +14,209 @@ import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Select';
 import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
+import { Spinner } from '@/components/ui/Spinner';
+import { supabase } from '@/lib/supabase';
+import { updateReservationStatus } from '@/lib/supabase-db';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-type ReservationStatus = '확정' | '운행완료' | '취소요청' | '취소완료';
-type PaymentStatus = '완료' | '대기' | '환불';
-
-interface Reservation {
+interface ReservationRow {
   id: string;
-  customer: string;
-  customerPhone: string;
-  driver: string;
-  driverPhone: string;
+  reservation_number: string;
+  total_amount: number;
+  deposit_amount: number;
+  remaining_amount: number;
+  status: string;
+  created_at: string;
+  // Joined data
+  customer_name: string;
+  customer_phone: string;
+  driver_name: string;
+  driver_phone: string;
   route: string;
-  amount: number;
-  depositStatus: PaymentStatus;
-  balanceStatus: PaymentStatus;
-  reservationStatus: ReservationStatus;
-  tripDate: string;
-  reservedAt: string;
-  vehicleType: string;
+  vehicle_type: string;
   passengers: number;
+  trip_date: string;
 }
 
-// ── Mock Data ────────────────────────────────────────────────────────────────
-
-const mockReservations: Reservation[] = [
-  {
-    id: 'R-2026-0201',
-    customer: '박민수',
-    customerPhone: '010-3456-7890',
-    driver: '윤서현',
-    driverPhone: '010-5555-6666',
-    route: '서울 종로 → 전주',
-    amount: 720000,
-    depositStatus: '완료',
-    balanceStatus: '대기',
-    reservationStatus: '확정',
-    tripDate: '2026-04-12',
-    reservedAt: '2026-03-16',
-    vehicleType: '45인승 대형',
-    passengers: 38,
-  },
-  {
-    id: 'R-2026-0198',
-    customer: '김철수',
-    customerPhone: '010-1234-5678',
-    driver: '한승우',
-    driverPhone: '010-1111-2222',
-    route: '서울 강남 → 부산 해운대',
-    amount: 850000,
-    depositStatus: '완료',
-    balanceStatus: '완료',
-    reservationStatus: '운행완료',
-    tripDate: '2026-03-10',
-    reservedAt: '2026-03-05',
-    vehicleType: '45인승 대형',
-    passengers: 40,
-  },
-  {
-    id: 'R-2026-0195',
-    customer: '이영희',
-    customerPhone: '010-2345-6789',
-    driver: '오지훈',
-    driverPhone: '010-3333-4444',
-    route: '인천공항 → 강릉',
-    amount: 580000,
-    depositStatus: '완료',
-    balanceStatus: '대기',
-    reservationStatus: '취소요청',
-    tripDate: '2026-03-28',
-    reservedAt: '2026-03-14',
-    vehicleType: '28인승 중형',
-    passengers: 25,
-  },
-];
-
-const reservationStatusConfig: Record<
-  ReservationStatus,
-  { variant: 'info' | 'warning' | 'success' | 'default' | 'danger'; label: string }
-> = {
-  '확정': { variant: 'info', label: '확정' },
-  '운행완료': { variant: 'success', label: '운행완료' },
-  '취소요청': { variant: 'danger', label: '취소요청' },
-  '취소완료': { variant: 'default', label: '취소완료' },
+const statusLabels: Record<string, string> = {
+  'pending_payment': '결제대기',
+  'deposit_paid': '예약금결제',
+  'confirmed': '확정',
+  'in_progress': '운행중',
+  'completed': '운행완료',
+  'cancelled': '취소',
+  'refunded': '환불완료',
 };
 
-const paymentStatusConfig: Record<PaymentStatus, { variant: 'success' | 'warning' | 'default' }> = {
-  '완료': { variant: 'success' },
-  '대기': { variant: 'warning' },
-  '환불': { variant: 'default' },
+const statusVariants: Record<string, 'info' | 'warning' | 'success' | 'default' | 'danger'> = {
+  'pending_payment': 'warning',
+  'deposit_paid': 'info',
+  'confirmed': 'info',
+  'in_progress': 'info',
+  'completed': 'success',
+  'cancelled': 'danger',
+  'refunded': 'default',
+};
+
+const paymentStatusLabel = (deposit: number, remaining: number, total: number, status: string) => {
+  if (status === 'refunded' || status === 'cancelled') return { deposit: '환불', balance: '환불' };
+  if (deposit > 0 && remaining <= 0) return { deposit: '완료', balance: '완료' };
+  if (deposit > 0) return { deposit: '완료', balance: '대기' };
+  return { deposit: '대기', balance: '대기' };
+};
+
+const paymentBadgeVariant = (label: string): 'success' | 'warning' | 'default' => {
+  if (label === '완료') return 'success';
+  if (label === '대기') return 'warning';
+  return 'default';
 };
 
 const statusFilterOptions = [
   { value: '', label: '전체 상태' },
-  { value: '확정', label: '확정' },
-  { value: '운행완료', label: '운행완료' },
-  { value: '취소요청', label: '취소요청' },
-  { value: '취소완료', label: '취소완료' },
+  { value: 'pending_payment', label: '결제대기' },
+  { value: 'deposit_paid', label: '예약금결제' },
+  { value: 'confirmed', label: '확정' },
+  { value: 'in_progress', label: '운행중' },
+  { value: 'completed', label: '운행완료' },
+  { value: 'cancelled', label: '취소' },
+  { value: 'refunded', label: '환불완료' },
+];
+
+const statusChangeOptions = [
+  { value: 'confirmed', label: '확정' },
+  { value: 'in_progress', label: '운행중' },
+  { value: 'completed', label: '운행완료' },
+  { value: 'cancelled', label: '취소' },
+  { value: 'refunded', label: '환불완료' },
 ];
 
 // ── Component ────────────────────────────────────────────────────────────────
 
 export default function ReservationsPage() {
+  const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
-  const [reservations, setReservations] = useState<Reservation[]>(mockReservations);
+  const [reservations, setReservations] = useState<ReservationRow[]>([]);
   const [detailOpen, setDetailOpen] = useState(false);
-  const [selectedRes, setSelectedRes] = useState<Reservation | null>(null);
+  const [selectedRes, setSelectedRes] = useState<ReservationRow | null>(null);
   const [statusChangeOpen, setStatusChangeOpen] = useState(false);
   const [newStatus, setNewStatus] = useState('');
+  const [updating, setUpdating] = useState(false);
+
+  useEffect(() => {
+    fetchReservations();
+  }, []);
+
+  async function fetchReservations() {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('reservations')
+        .select(`
+          *,
+          quotes(*, quote_requests(departure_address, destination_address, vehicle_type, passenger_count, departure_datetime), vehicles(vehicle_name, vehicle_type)),
+          profiles!customer_id(name, phone),
+          drivers!driver_id(*, profiles!user_id(name, phone))
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const mapped: ReservationRow[] = (data ?? []).map((r: any) => {
+        const qr = r.quotes?.quote_requests;
+        return {
+          id: r.id,
+          reservation_number: r.reservation_number || r.id.slice(0, 8),
+          total_amount: r.total_amount || 0,
+          deposit_amount: r.deposit_amount || 0,
+          remaining_amount: r.remaining_amount || 0,
+          status: r.status,
+          created_at: r.created_at,
+          customer_name: r.profiles?.name || '-',
+          customer_phone: r.profiles?.phone || '-',
+          driver_name: r.drivers?.profiles?.name || '-',
+          driver_phone: r.drivers?.profiles?.phone || '-',
+          route: qr
+            ? (qr.departure_address?.split(' ').slice(0, 2).join(' ') || '') +
+              ' \u2192 ' +
+              (qr.destination_address?.split(' ').slice(0, 2).join(' ') || '')
+            : '-',
+          vehicle_type: r.quotes?.vehicles?.vehicle_name || r.quotes?.vehicles?.vehicle_type || '-',
+          passengers: qr?.passenger_count || 0,
+          trip_date: qr?.departure_datetime
+            ? new Date(qr.departure_datetime).toLocaleDateString('ko-KR')
+            : '-',
+        };
+      });
+
+      setReservations(mapped);
+    } catch (err) {
+      console.error('Reservations fetch error:', err);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const filteredReservations = reservations.filter((r) => {
-    if (statusFilter && r.reservationStatus !== statusFilter) return false;
+    if (statusFilter && r.status !== statusFilter) return false;
     return true;
   });
 
   const formatCurrency = (amount: number) =>
     '\u20A9' + amount.toLocaleString('ko-KR');
 
-  const openDetail = (res: Reservation) => {
+  const openDetail = (res: ReservationRow) => {
     setSelectedRes(res);
     setDetailOpen(true);
   };
 
-  const openStatusChange = (res: Reservation) => {
+  const openStatusChange = (res: ReservationRow) => {
     setSelectedRes(res);
-    setNewStatus(res.reservationStatus);
+    setNewStatus(res.status);
     setStatusChangeOpen(true);
   };
 
-  const handleStatusChange = () => {
+  const handleStatusChange = async () => {
     if (!selectedRes) return;
-    setReservations((prev) =>
-      prev.map((r) =>
-        r.id === selectedRes.id ? { ...r, reservationStatus: newStatus as ReservationStatus } : r
-      )
-    );
-    setStatusChangeOpen(false);
+    setUpdating(true);
+    try {
+      await updateReservationStatus(selectedRes.id, newStatus);
+      setReservations((prev) =>
+        prev.map((r) =>
+          r.id === selectedRes.id ? { ...r, status: newStatus } : r
+        )
+      );
+      setStatusChangeOpen(false);
+    } catch (err) {
+      console.error('Status change error:', err);
+    } finally {
+      setUpdating(false);
+    }
   };
 
-  const handleCancelRefund = (resId: string) => {
-    setReservations((prev) =>
-      prev.map((r) =>
-        r.id === resId
-          ? { ...r, reservationStatus: '취소완료' as ReservationStatus, balanceStatus: '환불' as PaymentStatus, depositStatus: '환불' as PaymentStatus }
-          : r
-      )
-    );
+  const handleCancelRefund = async (resId: string) => {
+    setUpdating(true);
+    try {
+      await updateReservationStatus(resId, 'refunded');
+      setReservations((prev) =>
+        prev.map((r) =>
+          r.id === resId ? { ...r, status: 'refunded' } : r
+        )
+      );
+    } catch (err) {
+      console.error('Refund error:', err);
+    } finally {
+      setUpdating(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -185,13 +240,6 @@ export default function ReservationsPage() {
               onChange={(e) => setStatusFilter(e.target.value)}
             />
           </div>
-          <div className="w-full sm:w-48">
-            <Input type="date" />
-          </div>
-          <span className="text-sm text-gray-400">~</span>
-          <div className="w-full sm:w-48">
-            <Input type="date" />
-          </div>
         </div>
       </Card>
 
@@ -213,58 +261,66 @@ export default function ReservationsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {filteredReservations.map((r) => (
-                <tr key={r.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="whitespace-nowrap px-6 py-3 font-medium text-gray-900">{r.id}</td>
-                  <td className="whitespace-nowrap px-6 py-3 text-gray-700">{r.customer}</td>
-                  <td className="whitespace-nowrap px-6 py-3 text-gray-700">{r.driver}</td>
-                  <td className="whitespace-nowrap px-6 py-3 text-gray-700">{r.route}</td>
-                  <td className="whitespace-nowrap px-6 py-3 text-right font-medium text-gray-900">
-                    {formatCurrency(r.amount)}
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-3">
-                    <Badge variant={paymentStatusConfig[r.depositStatus]?.variant || 'default'} size="sm">
-                      {r.depositStatus}
-                    </Badge>
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-3">
-                    <Badge variant={paymentStatusConfig[r.balanceStatus]?.variant || 'default'} size="sm">
-                      {r.balanceStatus}
-                    </Badge>
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-3">
-                    <Badge
-                      variant={reservationStatusConfig[r.reservationStatus]?.variant || 'default'}
-                      size="sm"
-                      dot
-                    >
-                      {reservationStatusConfig[r.reservationStatus]?.label || r.reservationStatus}
-                    </Badge>
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-3">
-                    <div className="flex gap-1">
-                      <Button size="sm" variant="ghost" onClick={() => openDetail(r)}>
-                        <Eye className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => openStatusChange(r)}>
-                        <ChevronDown className="h-3.5 w-3.5" />
-                        상태변경
-                      </Button>
-                      {r.reservationStatus === '취소요청' && (
-                        <Button size="sm" variant="danger" onClick={() => handleCancelRefund(r.id)}>
-                          <RotateCcw className="h-3.5 w-3.5" />
-                          환불
+              {filteredReservations.map((r) => {
+                const ps = paymentStatusLabel(r.deposit_amount, r.remaining_amount, r.total_amount, r.status);
+                return (
+                  <tr key={r.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="whitespace-nowrap px-6 py-3 font-medium text-gray-900">{r.reservation_number}</td>
+                    <td className="whitespace-nowrap px-6 py-3 text-gray-700">{r.customer_name}</td>
+                    <td className="whitespace-nowrap px-6 py-3 text-gray-700">{r.driver_name}</td>
+                    <td className="whitespace-nowrap px-6 py-3 text-gray-700">{r.route}</td>
+                    <td className="whitespace-nowrap px-6 py-3 text-right font-medium text-gray-900">
+                      {formatCurrency(r.total_amount)}
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-3">
+                      <Badge variant={paymentBadgeVariant(ps.deposit)} size="sm">
+                        {ps.deposit}
+                      </Badge>
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-3">
+                      <Badge variant={paymentBadgeVariant(ps.balance)} size="sm">
+                        {ps.balance}
+                      </Badge>
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-3">
+                      <Badge
+                        variant={statusVariants[r.status] || 'default'}
+                        size="sm"
+                        dot
+                      >
+                        {statusLabels[r.status] || r.status}
+                      </Badge>
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-3">
+                      <div className="flex gap-1">
+                        <Button size="sm" variant="ghost" onClick={() => openDetail(r)}>
+                          <Eye className="h-3.5 w-3.5" />
                         </Button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                        <Button size="sm" variant="outline" onClick={() => openStatusChange(r)}>
+                          <ChevronDown className="h-3.5 w-3.5" />
+                          상태변경
+                        </Button>
+                        {r.status === 'cancelled' && (
+                          <Button
+                            size="sm"
+                            variant="danger"
+                            onClick={() => handleCancelRefund(r.id)}
+                            disabled={updating}
+                          >
+                            <RotateCcw className="h-3.5 w-3.5" />
+                            환불
+                          </Button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
               {filteredReservations.length === 0 && (
                 <tr>
                   <td colSpan={9} className="px-6 py-12 text-center text-gray-400">
                     <Calendar className="mx-auto mb-2 h-8 w-8" />
-                    해당 조건의 예약이 없습니다.
+                    데이터가 없습니다
                   </td>
                 </tr>
               )}
@@ -277,7 +333,7 @@ export default function ReservationsPage() {
       <Modal
         open={detailOpen}
         onClose={() => setDetailOpen(false)}
-        title={`예약 상세 - ${selectedRes?.id || ''}`}
+        title={`예약 상세 - ${selectedRes?.reservation_number || ''}`}
         size="lg"
       >
         {selectedRes && (
@@ -285,13 +341,13 @@ export default function ReservationsPage() {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="rounded-lg bg-gray-50 px-4 py-3">
                 <p className="text-xs font-medium text-gray-400">고객 정보</p>
-                <p className="mt-1 font-medium text-gray-900">{selectedRes.customer}</p>
-                <p className="text-sm text-gray-500">{selectedRes.customerPhone}</p>
+                <p className="mt-1 font-medium text-gray-900">{selectedRes.customer_name}</p>
+                <p className="text-sm text-gray-500">{selectedRes.customer_phone}</p>
               </div>
               <div className="rounded-lg bg-gray-50 px-4 py-3">
                 <p className="text-xs font-medium text-gray-400">기사 정보</p>
-                <p className="mt-1 font-medium text-gray-900">{selectedRes.driver}</p>
-                <p className="text-sm text-gray-500">{selectedRes.driverPhone}</p>
+                <p className="mt-1 font-medium text-gray-900">{selectedRes.driver_name}</p>
+                <p className="text-sm text-gray-500">{selectedRes.driver_phone}</p>
               </div>
             </div>
 
@@ -303,7 +359,7 @@ export default function ReservationsPage() {
                 </div>
                 <div>
                   <span className="text-gray-400">차량</span>
-                  <p className="font-medium text-gray-900">{selectedRes.vehicleType}</p>
+                  <p className="font-medium text-gray-900">{selectedRes.vehicle_type}</p>
                 </div>
                 <div>
                   <span className="text-gray-400">인원</span>
@@ -311,27 +367,27 @@ export default function ReservationsPage() {
                 </div>
                 <div>
                   <span className="text-gray-400">운행일</span>
-                  <p className="font-medium text-gray-900">{selectedRes.tripDate}</p>
+                  <p className="font-medium text-gray-900">{selectedRes.trip_date}</p>
                 </div>
               </div>
             </div>
 
             <div className="grid grid-cols-3 gap-4">
               <div className="rounded-lg bg-blue-50 px-4 py-3 text-center">
-                <p className="text-lg font-bold text-blue-600">{formatCurrency(selectedRes.amount)}</p>
+                <p className="text-lg font-bold text-blue-600">{formatCurrency(selectedRes.total_amount)}</p>
                 <p className="text-xs text-blue-500">총 금액</p>
               </div>
               <div className="rounded-lg bg-green-50 px-4 py-3 text-center">
                 <p className="text-lg font-bold text-green-600">
-                  {formatCurrency(Math.round(selectedRes.amount * 0.3))}
+                  {formatCurrency(selectedRes.deposit_amount)}
                 </p>
-                <p className="text-xs text-green-500">예약금 (30%)</p>
+                <p className="text-xs text-green-500">예약금</p>
               </div>
               <div className="rounded-lg bg-purple-50 px-4 py-3 text-center">
                 <p className="text-lg font-bold text-purple-600">
-                  {formatCurrency(Math.round(selectedRes.amount * 0.7))}
+                  {formatCurrency(selectedRes.remaining_amount)}
                 </p>
-                <p className="text-xs text-purple-500">잔금 (70%)</p>
+                <p className="text-xs text-purple-500">잔금</p>
               </div>
             </div>
           </div>
@@ -348,7 +404,7 @@ export default function ReservationsPage() {
             <Button variant="outline" onClick={() => setStatusChangeOpen(false)}>
               취소
             </Button>
-            <Button variant="primary" onClick={handleStatusChange}>
+            <Button variant="primary" onClick={handleStatusChange} disabled={updating}>
               변경
             </Button>
           </>
@@ -356,16 +412,11 @@ export default function ReservationsPage() {
       >
         <div className="space-y-4">
           <p className="text-sm text-gray-600">
-            예약번호 <span className="font-semibold">{selectedRes?.id}</span>의 상태를 변경합니다.
+            예약번호 <span className="font-semibold">{selectedRes?.reservation_number}</span>의 상태를 변경합니다.
           </p>
           <Select
             label="변경할 상태"
-            options={[
-              { value: '확정', label: '확정' },
-              { value: '운행완료', label: '운행완료' },
-              { value: '취소요청', label: '취소요청' },
-              { value: '취소완료', label: '취소완료' },
-            ]}
+            options={statusChangeOptions}
             value={newStatus}
             onChange={(e) => setNewStatus(e.target.value)}
           />

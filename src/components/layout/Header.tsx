@@ -18,17 +18,16 @@ const roleLabels: Record<Role, string> = {
 
 const customerNavItems = [
   { label: '홈', href: '/' },
-  { label: '견적신청', href: '/quote/request' },
+  { label: '견적신청', href: '/quote-request' },
   { label: '내 예약', href: '/reservations' },
   { label: '마이페이지', href: '/mypage' },
 ];
 
 const driverNavItems = [
-  { label: '견적요청', href: '/driver/requests' },
-  { label: '내 견적', href: '/driver/quotes' },
-  { label: '차량관리', href: '/driver/vehicles' },
-  { label: '정산', href: '/driver/settlements' },
-  { label: '마이페이지', href: '/driver/mypage' },
+  { label: '견적요청', href: '/dashboard' },
+  { label: '차량관리', href: '/vehicles' },
+  { label: '정산', href: '/settlements' },
+  { label: '마이페이지', href: '/mypage' },
 ];
 
 export default function Header() {
@@ -175,7 +174,7 @@ export default function Header() {
               </div>
             ) : (
               <Link
-                href="/login"
+                href="/auth"
                 className="hidden sm:inline-flex items-center gap-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
               >
                 <User className="w-4 h-4" />

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Search,
   Star,
@@ -18,68 +18,133 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
+import { Spinner } from '@/components/ui/Spinner';
 import { TabList, Tab } from '@/components/ui/Tabs';
+import { supabase } from '@/lib/supabase';
 
-type ApprovalStatus = '대기' | '승인' | '거절';
-
-interface DriverData {
-  id: number;
+interface CustomerData {
+  id: string;
   name: string;
-  company: string;
   phone: string;
-  rating: number;
-  tripCount: number;
-  approvalStatus: ApprovalStatus;
-  license: string;
-  vehicles: { type: string; plate: string; year: number }[];
-  revenue: number;
+  email: string;
+  created_at: string;
+  is_active: boolean;
+  quoteCount: number;
 }
 
-const mockCustomers = [
-  { id: 1, name: '김철수', phone: '010-1234-5678', email: 'kim@example.com', joinDate: '2025-11-20', status: '활성' as const, quoteCount: 12 },
-  { id: 2, name: '이영희', phone: '010-2345-6789', email: 'lee@example.com', joinDate: '2025-12-05', status: '활성' as const, quoteCount: 8 },
-  { id: 3, name: '박민수', phone: '010-3456-7890', email: 'park@example.com', joinDate: '2026-01-10', status: '정지' as const, quoteCount: 3 },
-  { id: 4, name: '최지은', phone: '010-4567-8901', email: 'choi@example.com', joinDate: '2026-02-14', status: '활성' as const, quoteCount: 5 },
-  { id: 5, name: '정우성', phone: '010-5678-9012', email: 'jung@example.com', joinDate: '2026-03-01', status: '활성' as const, quoteCount: 2 },
-];
+interface VehicleInfo {
+  vehicle_type: string;
+  plate_number: string;
+  year: number;
+  vehicle_name: string;
+}
 
-const mockDrivers: DriverData[] = [
-  {
-    id: 1, name: '한승우', company: '대한관광', phone: '010-1111-2222', rating: 4.8, tripCount: 156,
-    approvalStatus: '승인', license: '대형 1종 보통',
-    vehicles: [
-      { type: '45인승 대형', plate: '서울 12바 3456', year: 2023 },
-      { type: '28인승 중형', plate: '서울 34사 5678', year: 2024 },
-    ],
-    revenue: 45600000,
-  },
-  {
-    id: 2, name: '오지훈', company: '서울고속', phone: '010-3333-4444', rating: 4.5, tripCount: 89,
-    approvalStatus: '대기', license: '대형 1종 보통',
-    vehicles: [{ type: '45인승 대형', plate: '경기 56아 7890', year: 2022 }],
-    revenue: 23100000,
-  },
-  {
-    id: 3, name: '윤서현', company: '코리아버스', phone: '010-5555-6666', rating: 4.9, tripCount: 234,
-    approvalStatus: '승인', license: '대형 1종 보통',
-    vehicles: [{ type: '45인승 대형', plate: '인천 78자 1234', year: 2024 }],
-    revenue: 67800000,
-  },
-];
+interface DriverData {
+  id: string;
+  user_id: string;
+  name: string;
+  company_name: string;
+  phone: string;
+  rating: number;
+  total_trips: number;
+  approval_status: string;
+  license_type: string;
+  vehicles: VehicleInfo[];
+}
 
 export default function MembersPage() {
   const [activeTab, setActiveTab] = useState('customers');
   const [search, setSearch] = useState('');
   const [selectedDriver, setSelectedDriver] = useState<DriverData | null>(null);
   const [driverModalOpen, setDriverModalOpen] = useState(false);
-  const [drivers, setDrivers] = useState<DriverData[]>(mockDrivers);
+  const [loading, setLoading] = useState(true);
+  const [customers, setCustomers] = useState<CustomerData[]>([]);
+  const [drivers, setDrivers] = useState<DriverData[]>([]);
+  const [approving, setApproving] = useState<string | null>(null);
 
-  const filteredCustomers = mockCustomers.filter(
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  async function fetchData() {
+    setLoading(true);
+    try {
+      const [customersRes, driversRes] = await Promise.all([
+        // Fetch customers (profiles with role = 'customer')
+        supabase
+          .from('profiles')
+          .select('*')
+          .eq('role', 'customer')
+          .order('created_at', { ascending: false }),
+        // Fetch drivers with profile and vehicle joins
+        supabase
+          .from('drivers')
+          .select('*, profiles!user_id(name, phone, email), vehicles(*)')
+          .order('created_at', { ascending: false }),
+      ]);
+
+      // Process customers - count quote_requests for each
+      const customerProfiles = customersRes.data ?? [];
+      const customerIds = customerProfiles.map((c: any) => c.id);
+
+      let quoteCounts: Record<string, number> = {};
+      if (customerIds.length > 0) {
+        const { data: quoteData } = await supabase
+          .from('quote_requests')
+          .select('customer_id')
+          .in('customer_id', customerIds);
+        if (quoteData) {
+          quoteData.forEach((q: any) => {
+            quoteCounts[q.customer_id] = (quoteCounts[q.customer_id] || 0) + 1;
+          });
+        }
+      }
+
+      setCustomers(
+        customerProfiles.map((c: any) => ({
+          id: c.id,
+          name: c.name || '-',
+          phone: c.phone || '-',
+          email: c.email || '-',
+          created_at: c.created_at,
+          is_active: c.is_active ?? true,
+          quoteCount: quoteCounts[c.id] || 0,
+        }))
+      );
+
+      // Process drivers
+      setDrivers(
+        (driversRes.data ?? []).map((d: any) => ({
+          id: d.id,
+          user_id: d.user_id,
+          name: d.profiles?.name || '-',
+          company_name: d.company_name || '-',
+          phone: d.profiles?.phone || '-',
+          rating: d.rating || 0,
+          total_trips: d.total_trips || 0,
+          approval_status: d.approval_status || 'pending',
+          license_type: d.license_type || '-',
+          vehicles: (d.vehicles ?? []).map((v: any) => ({
+            vehicle_type: v.vehicle_type || '-',
+            plate_number: v.plate_number || '-',
+            year: v.year || 0,
+            vehicle_name: v.vehicle_name || '-',
+          })),
+        }))
+      );
+    } catch (err) {
+      console.error('Members fetch error:', err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const filteredCustomers = customers.filter(
     (c) => c.name.includes(search) || c.phone.includes(search)
   );
 
   const filteredDrivers = drivers.filter(
-    (d) => d.name.includes(search) || d.phone.includes(search) || d.company.includes(search)
+    (d) => d.name.includes(search) || d.phone.includes(search) || d.company_name.includes(search)
   );
 
   const openDriverDetail = (driver: DriverData) => {
@@ -87,28 +152,55 @@ export default function MembersPage() {
     setDriverModalOpen(true);
   };
 
-  const handleApproveDriver = (id: number) => {
-    setDrivers((prev) =>
-      prev.map((d) => (d.id === id ? { ...d, approvalStatus: '승인' as ApprovalStatus } : d))
-    );
-    setDriverModalOpen(false);
+  const handleApproveDriver = async (id: string) => {
+    setApproving(id);
+    try {
+      await supabase.from('drivers').update({ approval_status: 'approved' }).eq('id', id);
+      setDrivers((prev) =>
+        prev.map((d) => (d.id === id ? { ...d, approval_status: 'approved' } : d))
+      );
+      setDriverModalOpen(false);
+    } catch (err) {
+      console.error('Approve error:', err);
+    } finally {
+      setApproving(null);
+    }
   };
 
-  const handleRejectDriver = (id: number) => {
-    setDrivers((prev) =>
-      prev.map((d) => (d.id === id ? { ...d, approvalStatus: '거절' as ApprovalStatus } : d))
-    );
-    setDriverModalOpen(false);
+  const handleRejectDriver = async (id: string) => {
+    setApproving(id);
+    try {
+      await supabase.from('drivers').update({ approval_status: 'rejected' }).eq('id', id);
+      setDrivers((prev) =>
+        prev.map((d) => (d.id === id ? { ...d, approval_status: 'rejected' } : d))
+      );
+      setDriverModalOpen(false);
+    } catch (err) {
+      console.error('Reject error:', err);
+    } finally {
+      setApproving(null);
+    }
   };
-
-  const formatCurrency = (amount: number) =>
-    '\u20A9' + amount.toLocaleString('ko-KR');
 
   const approvalBadge: Record<string, 'warning' | 'success' | 'danger'> = {
-    '대기': 'warning',
-    '승인': 'success',
-    '거절': 'danger',
+    'pending': 'warning',
+    'approved': 'success',
+    'rejected': 'danger',
   };
+
+  const approvalLabel: Record<string, string> = {
+    'pending': '대기',
+    'approved': '승인',
+    'rejected': '거절',
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -148,32 +240,42 @@ export default function MembersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {filteredCustomers.map((c) => (
-                  <tr key={c.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="whitespace-nowrap px-6 py-3 font-medium text-gray-900">{c.name}</td>
-                    <td className="whitespace-nowrap px-6 py-3 text-gray-700">{c.phone}</td>
-                    <td className="whitespace-nowrap px-6 py-3 text-gray-700">{c.email}</td>
-                    <td className="whitespace-nowrap px-6 py-3 text-gray-500">{c.joinDate}</td>
-                    <td className="whitespace-nowrap px-6 py-3">
-                      <Badge variant={c.status === '활성' ? 'success' : 'danger'} size="sm" dot>
-                        {c.status}
-                      </Badge>
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-3 text-gray-700">{c.quoteCount}건</td>
-                    <td className="whitespace-nowrap px-6 py-3">
-                      <div className="flex gap-1">
-                        <Button size="sm" variant="ghost">
-                          <Eye className="h-3.5 w-3.5" />
-                          상세
-                        </Button>
-                        <Button size="sm" variant="ghost">
-                          <Ban className="h-3.5 w-3.5" />
-                          {c.status === '활성' ? '정지' : '해제'}
-                        </Button>
-                      </div>
+                {filteredCustomers.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-6 py-12 text-center text-gray-400">
+                      데이터가 없습니다
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  filteredCustomers.map((c) => (
+                    <tr key={c.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="whitespace-nowrap px-6 py-3 font-medium text-gray-900">{c.name}</td>
+                      <td className="whitespace-nowrap px-6 py-3 text-gray-700">{c.phone}</td>
+                      <td className="whitespace-nowrap px-6 py-3 text-gray-700">{c.email}</td>
+                      <td className="whitespace-nowrap px-6 py-3 text-gray-500">
+                        {new Date(c.created_at).toLocaleDateString('ko-KR')}
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-3">
+                        <Badge variant={c.is_active ? 'success' : 'danger'} size="sm" dot>
+                          {c.is_active ? '활성' : '정지'}
+                        </Badge>
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-3 text-gray-700">{c.quoteCount}건</td>
+                      <td className="whitespace-nowrap px-6 py-3">
+                        <div className="flex gap-1">
+                          <Button size="sm" variant="ghost">
+                            <Eye className="h-3.5 w-3.5" />
+                            상세
+                          </Button>
+                          <Button size="sm" variant="ghost">
+                            <Ban className="h-3.5 w-3.5" />
+                            {c.is_active ? '정지' : '해제'}
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -196,43 +298,61 @@ export default function MembersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {filteredDrivers.map((d) => (
-                  <tr key={d.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="whitespace-nowrap px-6 py-3 font-medium text-gray-900">{d.name}</td>
-                    <td className="whitespace-nowrap px-6 py-3 text-gray-700">{d.company}</td>
-                    <td className="whitespace-nowrap px-6 py-3 text-gray-700">{d.phone}</td>
-                    <td className="whitespace-nowrap px-6 py-3">
-                      <div className="flex items-center gap-1">
-                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        <span className="text-gray-700">{d.rating}</span>
-                      </div>
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-3 text-gray-700">{d.tripCount}회</td>
-                    <td className="whitespace-nowrap px-6 py-3">
-                      <Badge variant={approvalBadge[d.approvalStatus]} size="sm" dot>
-                        {d.approvalStatus}
-                      </Badge>
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-3">
-                      <div className="flex gap-1">
-                        <Button size="sm" variant="ghost" onClick={() => openDriverDetail(d)}>
-                          <Eye className="h-3.5 w-3.5" />
-                          상세
-                        </Button>
-                        {d.approvalStatus === '대기' && (
-                          <>
-                            <Button size="sm" variant="primary" onClick={() => handleApproveDriver(d.id)}>
-                              승인
-                            </Button>
-                            <Button size="sm" variant="danger" onClick={() => handleRejectDriver(d.id)}>
-                              거절
-                            </Button>
-                          </>
-                        )}
-                      </div>
+                {filteredDrivers.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-6 py-12 text-center text-gray-400">
+                      데이터가 없습니다
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  filteredDrivers.map((d) => (
+                    <tr key={d.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="whitespace-nowrap px-6 py-3 font-medium text-gray-900">{d.name}</td>
+                      <td className="whitespace-nowrap px-6 py-3 text-gray-700">{d.company_name}</td>
+                      <td className="whitespace-nowrap px-6 py-3 text-gray-700">{d.phone}</td>
+                      <td className="whitespace-nowrap px-6 py-3">
+                        <div className="flex items-center gap-1">
+                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                          <span className="text-gray-700">{d.rating.toFixed(1)}</span>
+                        </div>
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-3 text-gray-700">{d.total_trips}회</td>
+                      <td className="whitespace-nowrap px-6 py-3">
+                        <Badge variant={approvalBadge[d.approval_status] || 'default'} size="sm" dot>
+                          {approvalLabel[d.approval_status] || d.approval_status}
+                        </Badge>
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-3">
+                        <div className="flex gap-1">
+                          <Button size="sm" variant="ghost" onClick={() => openDriverDetail(d)}>
+                            <Eye className="h-3.5 w-3.5" />
+                            상세
+                          </Button>
+                          {d.approval_status === 'pending' && (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="primary"
+                                onClick={() => handleApproveDriver(d.id)}
+                                disabled={approving === d.id}
+                              >
+                                승인
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="danger"
+                                onClick={() => handleRejectDriver(d.id)}
+                                disabled={approving === d.id}
+                              >
+                                거절
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -245,13 +365,21 @@ export default function MembersPage() {
         title="기사 상세 정보"
         size="lg"
         footer={
-          selectedDriver?.approvalStatus === '대기' ? (
+          selectedDriver?.approval_status === 'pending' ? (
             <>
-              <Button variant="danger" onClick={() => selectedDriver && handleRejectDriver(selectedDriver.id)}>
+              <Button
+                variant="danger"
+                onClick={() => selectedDriver && handleRejectDriver(selectedDriver.id)}
+                disabled={approving === selectedDriver?.id}
+              >
                 <XCircle className="h-4 w-4" />
                 거절
               </Button>
-              <Button variant="primary" onClick={() => selectedDriver && handleApproveDriver(selectedDriver.id)}>
+              <Button
+                variant="primary"
+                onClick={() => selectedDriver && handleApproveDriver(selectedDriver.id)}
+                disabled={approving === selectedDriver?.id}
+              >
                 <CheckCircle className="h-4 w-4" />
                 승인
               </Button>
@@ -274,15 +402,15 @@ export default function MembersPage() {
                   </div>
                   <div>
                     <p className="font-medium text-gray-900">{selectedDriver.name}</p>
-                    <Badge variant={approvalBadge[selectedDriver.approvalStatus]} size="sm" dot>
-                      {selectedDriver.approvalStatus}
+                    <Badge variant={approvalBadge[selectedDriver.approval_status] || 'default'} size="sm" dot>
+                      {approvalLabel[selectedDriver.approval_status] || selectedDriver.approval_status}
                     </Badge>
                   </div>
                 </div>
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center gap-2 text-gray-600">
                     <Building2 className="h-4 w-4 text-gray-400" />
-                    {selectedDriver.company}
+                    {selectedDriver.company_name}
                   </div>
                   <div className="flex items-center gap-2 text-gray-600">
                     <Phone className="h-4 w-4 text-gray-400" />
@@ -290,7 +418,7 @@ export default function MembersPage() {
                   </div>
                   <div className="flex items-center gap-2 text-gray-600">
                     <CreditCard className="h-4 w-4 text-gray-400" />
-                    {selectedDriver.license}
+                    {selectedDriver.license_type}
                   </div>
                 </div>
               </div>
@@ -299,32 +427,32 @@ export default function MembersPage() {
             <div>
               <h3 className="mb-3 text-sm font-semibold uppercase text-gray-400">보유 차량</h3>
               <div className="space-y-2">
-                {selectedDriver.vehicles.map((v, i) => (
-                  <div key={i} className="flex items-center gap-3 rounded-lg border border-gray-100 bg-gray-50 px-4 py-3">
-                    <Truck className="h-5 w-5 text-gray-400" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{v.type}</p>
-                      <p className="text-xs text-gray-500">{v.plate} / {v.year}년식</p>
+                {selectedDriver.vehicles.length === 0 ? (
+                  <p className="text-sm text-gray-400">등록된 차량이 없습니다.</p>
+                ) : (
+                  selectedDriver.vehicles.map((v, i) => (
+                    <div key={i} className="flex items-center gap-3 rounded-lg border border-gray-100 bg-gray-50 px-4 py-3">
+                      <Truck className="h-5 w-5 text-gray-400" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{v.vehicle_name || v.vehicle_type}</p>
+                        <p className="text-xs text-gray-500">{v.plate_number} / {v.year}년식</p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
 
             <div>
               <h3 className="mb-3 text-sm font-semibold uppercase text-gray-400">운행 실적</h3>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="rounded-lg bg-blue-50 px-4 py-3 text-center">
-                  <p className="text-2xl font-bold text-blue-600">{selectedDriver.tripCount}</p>
+                  <p className="text-2xl font-bold text-blue-600">{selectedDriver.total_trips}</p>
                   <p className="text-xs text-blue-500">총 운행</p>
                 </div>
                 <div className="rounded-lg bg-yellow-50 px-4 py-3 text-center">
-                  <p className="text-2xl font-bold text-yellow-600">{selectedDriver.rating}</p>
+                  <p className="text-2xl font-bold text-yellow-600">{selectedDriver.rating.toFixed(1)}</p>
                   <p className="text-xs text-yellow-500">평균 평점</p>
-                </div>
-                <div className="rounded-lg bg-green-50 px-4 py-3 text-center">
-                  <p className="text-2xl font-bold text-green-600">{formatCurrency(selectedDriver.revenue)}</p>
-                  <p className="text-xs text-green-500">총 매출</p>
                 </div>
               </div>
             </div>

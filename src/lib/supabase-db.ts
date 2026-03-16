@@ -30,6 +30,10 @@ export async function getQuoteRequestById(id: string) {
   return supabase.from('quote_requests').select('*, profiles!customer_id(name, phone, email)').eq('id', id).single()
 }
 
+export async function updateQuoteRequestStatus(id: string, status: string) {
+  return supabase.from('quote_requests').update({ status, updated_at: new Date().toISOString() }).eq('id', id)
+}
+
 // ============= Quotes =============
 export async function createQuote(data: {
   request_id: string
@@ -52,6 +56,10 @@ export async function getQuotesForRequest(requestId: string) {
     .select('*, drivers(*, profiles!user_id(name, phone)), vehicles(*)')
     .eq('request_id', requestId)
     .order('total_price', { ascending: true })
+}
+
+export async function updateQuoteStatus(id: string, status: string) {
+  return supabase.from('quotes').update({ status, updated_at: new Date().toISOString() }).eq('id', id)
 }
 
 export async function getDriverQuotes(driverId: string) {

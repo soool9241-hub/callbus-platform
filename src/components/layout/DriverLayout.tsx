@@ -15,11 +15,11 @@ const roleLabels: Record<Role, string> = {
 };
 
 const driverNavItems = [
-  { label: '견적요청', href: '/driver/requests' },
-  { label: '내 견적', href: '/driver/quotes' },
-  { label: '차량관리', href: '/driver/vehicles' },
-  { label: '정산', href: '/driver/settlements' },
-  { label: '마이페이지', href: '/driver/mypage' },
+  { label: '견적요청', href: '/dashboard' },
+  { label: '견적제출', href: '/quote-submit' },
+  { label: '차량관리', href: '/vehicles' },
+  { label: '정산', href: '/settlements' },
+  { label: '마이페이지', href: '/mypage' },
 ];
 
 interface DriverLayoutProps {
@@ -30,10 +30,9 @@ export default function DriverLayout({ children }: DriverLayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const { currentRole, setCurrentRole, currentUser } = useStore();
+  const { currentRole, setCurrentRole, currentUser, unreadCount } = useStore();
 
   const roles: Role[] = ['customer', 'driver', 'admin'];
-  const unreadCount = 2;
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -52,7 +51,7 @@ export default function DriverLayout({ children }: DriverLayoutProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo - green accent for driver */}
-            <Link href="/driver" className="flex items-center gap-1 text-2xl font-bold text-green-600">
+            <Link href="/dashboard" className="flex items-center gap-1 text-2xl font-bold text-green-600">
               🚌 콜버스
             </Link>
 
@@ -113,14 +112,14 @@ export default function DriverLayout({ children }: DriverLayoutProps) {
               {/* User Avatar / Login */}
               {currentUser ? (
                 <Link
-                  href="/driver/mypage"
+                  href="/mypage"
                   className="flex items-center justify-center w-9 h-9 rounded-full bg-green-100 text-green-600 hover:bg-green-200 transition-colors"
                 >
                   <User className="w-5 h-5" />
                 </Link>
               ) : (
                 <Link
-                  href="/login"
+                  href="/auth"
                   className="hidden sm:inline-flex items-center gap-1 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
                 >
                   <User className="w-4 h-4" />

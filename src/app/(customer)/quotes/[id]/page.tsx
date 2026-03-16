@@ -16,7 +16,8 @@ import { VEHICLE_TYPES } from '@/types';
 import type { QuoteRequest, Quote } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
 import { useStore } from '@/store/useStore';
-import { getQuoteRequestById, getQuotesForRequest, createReservation } from '@/lib/supabase-db';
+import { getQuoteRequestById, getQuotesForRequest, createReservation, updateQuoteStatus, updateQuoteRequestStatus } from '@/lib/supabase-db';
+import toast from 'react-hot-toast';
 import {
   MapPin,
   Calendar,
@@ -145,7 +146,7 @@ export default function QuoteComparisonPage() {
     if (isLoggedIn && currentUser) {
       setReserving(true);
       try {
-        const depositRate = 0.3;
+        const depositRate = 0.2;
         const depositAmount = Math.round(selectedQuote.total_price * depositRate);
         const { error } = await createReservation({
           reservation_number: `RSV-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`,
@@ -157,9 +158,16 @@ export default function QuoteComparisonPage() {
           remaining_amount: selectedQuote.total_price - depositAmount,
         });
         if (error) throw error;
-      } catch (err) {
+
+        // Update quote status to 'selected'
+        await updateQuoteStatus(selectedQuote.id, 'selected');
+        // Update request status to 'reserved'
+        await updateQuoteRequestStatus(requestId, 'reserved');
+
+        toast.success('예약이 완료되었습니다!');
+      } catch (err: any) {
         console.error('예약 실패:', err);
-        alert('예약 처리 중 오류가 발생했습니다.');
+        toast.error(err?.message || '예약 처리 중 오류가 발생했습니다.');
         setReserving(false);
         return;
       }
@@ -245,6 +253,13 @@ export default function QuoteComparisonPage() {
       </div>
 
       {/* Quotes List */}
+      {sortedQuotes.length === 0 && (
+        <div className="text-center py-16 text-gray-400">
+          <MessageCircle className="w-12 h-12 mx-auto mb-3 opacity-50" />
+          <p className="text-lg font-medium text-gray-500 mb-1">아직 견적이 없습니다</p>
+          <p className="text-sm">기사님들의 견적을 기다려주세요. 보통 1~2시간 내에 도착합니다.</p>
+        </div>
+      )}
       <div className="space-y-4">
         {sortedQuotes.map((quote) => {
           const driver = mockDrivers.find((d) => d.id === quote.driver_id);
@@ -375,9 +390,9 @@ export default function QuoteComparisonPage() {
                 </span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500">예약금 (30%)</span>
+                <span className="text-gray-500">예약금 (20%)</span>
                 <span className="font-semibold text-gray-900">
-                  {formatPrice(Math.round(selectedQuote.total_price * 0.3))}
+                  {formatPrice(Math.round(selectedQuote.total_price * 0.2))}
                 </span>
               </div>
             </div>

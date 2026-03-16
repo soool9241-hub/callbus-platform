@@ -11,6 +11,7 @@ import { VEHICLE_TYPES, PURPOSES } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
 import { useStore } from '@/store/useStore';
 import { createQuoteRequest } from '@/lib/supabase-db';
+import toast from 'react-hot-toast';
 import {
   MapPin,
   Calendar,
@@ -56,8 +57,6 @@ export default function QuoteRequestPage() {
   const [contactName, setContactName] = useState('');
   const [contactPhone, setContactPhone] = useState('');
 
-  const [toast, setToast] = useState(false);
-
   const addWaypoint = () => setWaypoints([...waypoints, '']);
   const removeWaypoint = (idx: number) => setWaypoints(waypoints.filter((_, i) => i !== idx));
   const updateWaypoint = (idx: number, val: string) => {
@@ -81,8 +80,30 @@ export default function QuoteRequestPage() {
 
   const handleSubmit = async () => {
     if (!isLoggedIn || !currentUser) {
-      alert('로그인 후 이용 가능합니다');
+      toast.error('로그인 후 이용 가능합니다');
       router.push('/auth');
+      return;
+    }
+
+    // Validation
+    if (!departure || !destination) {
+      toast.error('출발지와 도착지를 입력해주세요.');
+      return;
+    }
+    if (!departureDate) {
+      toast.error('출발 일시를 입력해주세요.');
+      return;
+    }
+    if (!passengerCount || Number(passengerCount) <= 0) {
+      toast.error('인원수를 입력해주세요.');
+      return;
+    }
+    if (selectedVehicleTypes.length === 0) {
+      toast.error('차량 타입을 선택해주세요.');
+      return;
+    }
+    if (!contactPhone) {
+      toast.error('연락처를 입력해주세요.');
       return;
     }
 
@@ -112,12 +133,11 @@ export default function QuoteRequestPage() {
 
       if (error) throw error;
 
-      setToast(true);
+      toast.success('견적 요청이 등록되었습니다!');
       setSubmitted(true);
-      setTimeout(() => setToast(false), 4000);
-    } catch (err) {
+    } catch (err: any) {
       console.error('견적 요청 실패:', err);
-      alert('견적 요청 중 오류가 발생했습니다. 다시 시도해주세요.');
+      toast.error(err?.message || '견적 요청 중 오류가 발생했습니다.');
     } finally {
       setSubmitting(false);
     }
@@ -405,13 +425,6 @@ export default function QuoteRequestPage() {
         </div>
       </Card>
 
-      {/* Toast */}
-      {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-lg z-50 flex items-center gap-2 animate-slide-up">
-          <CheckCircle className="w-5 h-5 text-green-400" />
-          견적 요청이 등록되었습니다! 기사님들의 견적을 기다려주세요.
-        </div>
-      )}
     </div>
   );
 }
