@@ -269,7 +269,7 @@ export default function HomePage() {
             </div>
 
             {/* Right side: Quote Form */}
-            <div className="w-full lg:w-[460px] flex-shrink-0">
+            <div id="quote-form" className="w-full lg:w-[460px] flex-shrink-0">
               <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
                 {/* Tab switcher */}
                 <div className="flex">
@@ -429,7 +429,7 @@ export default function HomePage() {
                 key={uc.tag}
                 onClick={() => {
                   setPurpose(uc.tag);
-                  scrollTo('hero');
+                  scrollTo('#quote-form');
                 }}
                 className="flex flex-col items-center gap-3 p-5 sm:p-6 bg-white border border-gray-200 rounded-2xl hover:border-[#1B6FF4] hover:shadow-lg transition-all cursor-pointer group"
               >
