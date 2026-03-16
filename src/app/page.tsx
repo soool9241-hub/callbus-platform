@@ -151,7 +151,11 @@ export default function HomePage() {
   function scrollTo(href: string) {
     setMobileMenuOpen(false);
     const el = document.querySelector(href);
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
+    if (el) {
+      const navbarHeight = 64;
+      const y = el.getBoundingClientRect().top + window.scrollY - navbarHeight;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }
   }
 
   return (
@@ -429,7 +433,7 @@ export default function HomePage() {
                 key={uc.tag}
                 onClick={() => {
                   setPurpose(uc.tag);
-                  scrollTo('#quote-form');
+                  setTimeout(() => scrollTo('#quote-form'), 50);
                 }}
                 className={`flex flex-col items-center gap-3 p-5 sm:p-6 rounded-2xl transition-all cursor-pointer group ${
                   purpose === uc.tag
