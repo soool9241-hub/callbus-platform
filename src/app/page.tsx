@@ -378,11 +378,11 @@ export default function HomePage() {
 
                   {/* Purpose */}
                   <div className="relative">
-                    <MessageCircle className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <MessageCircle className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${purpose ? 'text-[#1B6FF4]' : 'text-gray-400'}`} />
                     <select
                       value={purpose}
                       onChange={(e) => setPurpose(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1B6FF4]/30 focus:border-[#1B6FF4] appearance-none bg-white"
+                      className={`w-full pl-10 pr-4 py-3 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1B6FF4]/30 focus:border-[#1B6FF4] appearance-none bg-white ${purpose ? 'border-[#1B6FF4] text-[#1B6FF4] font-semibold ring-2 ring-[#1B6FF4]/20' : 'border-gray-200 text-gray-900'}`}
                     >
                       <option value="">이용 목적 선택</option>
                       {purposeOptions.map((p) => (
@@ -431,12 +431,18 @@ export default function HomePage() {
                   setPurpose(uc.tag);
                   scrollTo('#quote-form');
                 }}
-                className="flex flex-col items-center gap-3 p-5 sm:p-6 bg-white border border-gray-200 rounded-2xl hover:border-[#1B6FF4] hover:shadow-lg transition-all cursor-pointer group"
+                className={`flex flex-col items-center gap-3 p-5 sm:p-6 rounded-2xl transition-all cursor-pointer group ${
+                  purpose === uc.tag
+                    ? 'bg-[#E8F1FE] border-2 border-[#1B6FF4] shadow-lg'
+                    : 'bg-white border border-gray-200 hover:border-[#1B6FF4] hover:shadow-lg'
+                }`}
               >
-                <div className="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center rounded-2xl bg-gray-50 group-hover:bg-[#E8F1FE] transition-colors">
+                <div className={`w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center rounded-2xl transition-colors ${
+                  purpose === uc.tag ? 'bg-[#1B6FF4]/10' : 'bg-gray-50 group-hover:bg-[#E8F1FE]'
+                }`}>
                   <span className="text-3xl sm:text-4xl">{uc.emoji}</span>
                 </div>
-                <span className="text-sm sm:text-base font-semibold text-gray-800">{uc.title}</span>
+                <span className={`text-sm sm:text-base font-semibold ${purpose === uc.tag ? 'text-[#1B6FF4]' : 'text-gray-800'}`}>{uc.title}</span>
               </button>
             ))}
           </div>
