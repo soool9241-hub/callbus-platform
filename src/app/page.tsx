@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/Card';
@@ -15,6 +15,7 @@ import {
   CheckCircle,
   ChevronRight,
   ChevronDown,
+  ChevronLeft,
   Shield,
   CreditCard,
   Menu,
@@ -58,19 +59,19 @@ const packages = [
 ];
 
 const steps = [
-  { num: '01', title: '간편 견적 신청', desc: '출발지, 도착지, 날짜, 인원만 입력하면 30초면 끝', Icon: Calendar },
-  { num: '02', title: '견적 비교', desc: '전국 기사님의 견적을 가격·평점·차량으로 한눈에 비교', Icon: Users },
-  { num: '03', title: '예약 & 결제', desc: '카카오페이, 네이버페이, 토스 간편 결제 지원', Icon: CreditCard },
-  { num: '04', title: '안심 탑승', desc: '전담매니저 배정, GPS 실시간 추적, 노쇼 보상까지', Icon: Shield },
+  { num: '01', title: '간편 견적 신청', desc: '30초면 견적 요청 완료', Icon: Calendar },
+  { num: '02', title: '견적 비교', desc: '최대 20개 견적 한눈에 비교', Icon: Users },
+  { num: '03', title: '예약 & 결제', desc: '간편 결제로 바로 예약', Icon: CreditCard },
+  { num: '04', title: '안심 탑승', desc: '전담매니저 + GPS 추적', Icon: Shield },
 ];
 
 const premiumCareItems = [
-  { emoji: '👨‍💼', icon: Headphones, title: '전담매니저 배정', desc: '50만원 이상 건에 1:1 전담매니저가 배정되어 출발부터 도착까지 케어합니다' },
-  { emoji: '💰', icon: Shield, title: '계약금 100% 보호', desc: '에스크로 안전 결제로 계약금을 100% 보호합니다. 운행 완료 후 기사님께 정산됩니다' },
-  { emoji: '🔍', icon: UserCheck, title: '기사 10단계 검증', desc: '실명·운전면허·보험·범죄이력 등 10단계 검증을 통과한 기사님만 등록됩니다' },
-  { emoji: '📋', icon: FileCheck, title: '3개월 보험 재검증', desc: '3개월 단위로 보험증서를 재검증하여 항상 유효한 보험 상태를 유지합니다' },
-  { emoji: '🔄', icon: RefreshCw, title: '노쇼 시 대체배차', desc: '기사님 노쇼 발생 시 즉시 대체 배차를 보장합니다. 걱정 없이 예약하세요' },
-  { emoji: '🚫', icon: Banknote, title: '추가금 0원 보장', desc: '견적 외 추가 비용 요구를 금지합니다. 톨비·주차비·식사비 모두 포함 견적입니다' },
+  { emoji: '👨‍💼', icon: Headphones, title: '전담매니저 배정', desc: '1:1 매니저가 출발~도착 케어' },
+  { emoji: '💰', icon: Shield, title: '계약금 100% 보호', desc: '에스크로 결제로 안전 보장' },
+  { emoji: '🔍', icon: UserCheck, title: '기사 10단계 검증', desc: '면허·보험·이력 철저 검증' },
+  { emoji: '📋', icon: FileCheck, title: '3개월 보험 재검증', desc: '보험 상태 주기적 재확인' },
+  { emoji: '🔄', icon: RefreshCw, title: '노쇼 시 대체배차', desc: '즉시 대체 차량 배정 보장' },
+  { emoji: '🚫', icon: Banknote, title: '추가금 0원 보장', desc: '톨비·주차비 모두 포함 견적' },
 ];
 
 const sampleReviews = [
@@ -113,6 +114,7 @@ export default function HomePage() {
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'bus' | 'package'>('bus');
+  const [productType, setProductType] = useState<'bus_only' | 'bus_stay' | 'bus_stay_food'>('bus_only');
   const [tripType, setTripType] = useState<'round' | 'oneway'>('round');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
@@ -126,6 +128,21 @@ export default function HomePage() {
   const [purpose, setPurpose] = useState('');
   const [showBottomCTA, setShowBottomCTA] = useState(false);
 
+  // Calendar picker state
+  const [showCalendar, setShowCalendar] = useState<'departure' | 'return' | null>(null);
+  const [calendarMonth, setCalendarMonth] = useState(new Date());
+  const calendarRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (calendarRef.current && !calendarRef.current.contains(e.target as Node)) {
+        setShowCalendar(null);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   useEffect(() => {
     function onScroll() {
       const el = document.getElementById('benefits');
@@ -138,6 +155,30 @@ export default function HomePage() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  function getDaysInMonth(year: number, month: number) {
+    return new Date(year, month + 1, 0).getDate();
+  }
+  function getFirstDayOfMonth(year: number, month: number) {
+    return new Date(year, month, 1).getDay();
+  }
+  function formatDate(d: Date) {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+  function formatDateKr(dateStr: string) {
+    if (!dateStr) return '';
+    const [y, m, d] = dateStr.split('-');
+    return `${y}.${m}.${d}`;
+  }
+  function selectCalendarDate(dateStr: string) {
+    if (showCalendar === 'departure') {
+      setDepartureDate(dateStr);
+      setShowCalendar(null);
+    } else if (showCalendar === 'return') {
+      setReturnDate(dateStr);
+      setShowCalendar(null);
+    }
+  }
+
   function handleQuoteSubmit(e: React.FormEvent) {
     e.preventDefault();
     const params = new URLSearchParams();
@@ -149,6 +190,7 @@ export default function HomePage() {
     if (vehicleType) params.set('vehicleType', vehicleType);
     if (purpose) params.set('purpose', purpose);
     params.set('tripType', tripType);
+    params.set('productType', productType);
     if (activeTab === 'package') params.set('type', 'package');
     router.push(`/customer/quote-request?${params.toString()}`);
   }
@@ -292,27 +334,37 @@ export default function HomePage() {
             {/* Right side: Quote Form */}
             <div id="quote-form" className="w-full lg:w-[460px] flex-shrink-0">
               <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
-                {/* Tab switcher */}
+                {/* Product type switcher - 3 options */}
                 <div className="flex">
                   <button
-                    className={`flex-1 py-3.5 text-sm font-bold transition-colors ${
-                      activeTab === 'bus'
+                    className={`flex-1 py-3 text-xs sm:text-sm font-bold transition-colors ${
+                      productType === 'bus_only'
                         ? 'bg-[#1B6FF4] text-white'
                         : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                     }`}
-                    onClick={() => setActiveTab('bus')}
+                    onClick={() => setProductType('bus_only')}
                   >
-                    🚌 버스대절
+                    🚌 버스만
                   </button>
                   <button
-                    className={`flex-1 py-3.5 text-sm font-bold transition-colors ${
-                      activeTab === 'package'
+                    className={`flex-1 py-3 text-xs sm:text-sm font-bold transition-colors ${
+                      productType === 'bus_stay'
                         ? 'bg-[#FF6B35] text-white'
                         : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                     }`}
-                    onClick={() => setActiveTab('package')}
+                    onClick={() => setProductType('bus_stay')}
                   >
-                    🏕️ 펜션+버스
+                    🏕️ 버스+숙소
+                  </button>
+                  <button
+                    className={`flex-1 py-3 text-xs sm:text-sm font-bold transition-colors ${
+                      productType === 'bus_stay_food'
+                        ? 'bg-[#10B981] text-white'
+                        : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                    }`}
+                    onClick={() => setProductType('bus_stay_food')}
+                  >
+                    🍽️ 버스+숙소+식사
                   </button>
                 </div>
 
@@ -368,31 +420,88 @@ export default function HomePage() {
                     />
                   </div>
 
-                  {/* Dates row */}
+                  {/* Dates row with calendar */}
                   <div className={`grid gap-2 ${tripType === 'round' ? 'grid-cols-2' : 'grid-cols-1'}`}>
                     <div className="relative">
-                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                      <input
-                        type="date"
-                        value={departureDate}
-                        onChange={(e) => setDepartureDate(e.target.value)}
-                        title="출발일"
-                        className="w-full pl-10 pr-2 py-3 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1B6FF4]/30 focus:border-[#1B6FF4]"
-                      />
+                      <button
+                        type="button"
+                        onClick={() => { setShowCalendar(showCalendar === 'departure' ? null : 'departure'); setCalendarMonth(departureDate ? new Date(departureDate) : new Date()); }}
+                        className={`w-full flex items-center gap-2 pl-3 pr-2 py-3 border rounded-lg text-sm text-left transition-all ${departureDate ? 'border-[#1B6FF4] text-gray-900' : 'border-gray-200 text-gray-400'} focus:outline-none focus:ring-2 focus:ring-[#1B6FF4]/30`}
+                      >
+                        <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                        <span>{departureDate ? formatDateKr(departureDate) : '출발일'}</span>
+                      </button>
                     </div>
                     {tripType === 'round' && (
                       <div className="relative">
-                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                        <input
-                          type="date"
-                          value={returnDate}
-                          onChange={(e) => setReturnDate(e.target.value)}
-                          title="귀환일"
-                          className="w-full pl-10 pr-2 py-3 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B6FF4]/30 focus:border-[#1B6FF4]"
-                        />
+                        <button
+                          type="button"
+                          onClick={() => { setShowCalendar(showCalendar === 'return' ? null : 'return'); setCalendarMonth(returnDate ? new Date(returnDate) : new Date()); }}
+                          className={`w-full flex items-center gap-2 pl-3 pr-2 py-3 border rounded-lg text-sm text-left transition-all ${returnDate ? 'border-[#1B6FF4] text-gray-900' : 'border-gray-200 text-gray-400'} focus:outline-none focus:ring-2 focus:ring-[#1B6FF4]/30`}
+                        >
+                          <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                          <span>{returnDate ? formatDateKr(returnDate) : '귀환일'}</span>
+                        </button>
                       </div>
                     )}
                   </div>
+
+                  {/* Calendar popup */}
+                  {showCalendar && (
+                    <div ref={calendarRef} className="bg-white border border-gray-200 rounded-xl shadow-lg p-4 animate-in fade-in duration-200">
+                      <div className="flex items-center justify-between mb-3">
+                        <button type="button" onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1))} className="p-1 hover:bg-gray-100 rounded-lg">
+                          <ChevronLeft className="w-5 h-5 text-gray-600" />
+                        </button>
+                        <span className="text-sm font-bold text-gray-900">
+                          {calendarMonth.getFullYear()}년 {calendarMonth.getMonth() + 1}월
+                        </span>
+                        <button type="button" onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1))} className="p-1 hover:bg-gray-100 rounded-lg">
+                          <ChevronRight className="w-5 h-5 text-gray-600" />
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-7 gap-1 text-center mb-1">
+                        {['일','월','화','수','목','금','토'].map(d => (
+                          <div key={d} className={`text-xs font-medium py-1 ${d === '일' ? 'text-red-500' : d === '토' ? 'text-blue-500' : 'text-gray-500'}`}>{d}</div>
+                        ))}
+                      </div>
+                      <div className="grid grid-cols-7 gap-1 text-center">
+                        {(() => {
+                          const year = calendarMonth.getFullYear();
+                          const month = calendarMonth.getMonth();
+                          const days = getDaysInMonth(year, month);
+                          const firstDay = getFirstDayOfMonth(year, month);
+                          const today = formatDate(new Date());
+                          const selected = showCalendar === 'departure' ? departureDate : returnDate;
+                          const cells = [];
+                          for (let i = 0; i < firstDay; i++) cells.push(<div key={`e${i}`} />);
+                          for (let d = 1; d <= days; d++) {
+                            const dateStr = formatDate(new Date(year, month, d));
+                            const isPast = dateStr < today;
+                            const isSelected = dateStr === selected;
+                            const isToday = dateStr === today;
+                            cells.push(
+                              <button
+                                key={d}
+                                type="button"
+                                disabled={isPast}
+                                onClick={() => selectCalendarDate(dateStr)}
+                                className={`py-1.5 text-sm rounded-lg transition-all ${
+                                  isSelected ? 'bg-[#1B6FF4] text-white font-bold' :
+                                  isToday ? 'bg-blue-50 text-[#1B6FF4] font-semibold' :
+                                  isPast ? 'text-gray-300 cursor-not-allowed' :
+                                  'text-gray-700 hover:bg-gray-100'
+                                }`}
+                              >
+                                {d}
+                              </button>
+                            );
+                          }
+                          return cells;
+                        })()}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Passengers + Vehicle row */}
                   <div className="grid grid-cols-2 gap-2">
@@ -443,12 +552,14 @@ export default function HomePage() {
                   <button
                     type="submit"
                     className={`w-full py-4 text-base font-bold rounded-lg transition-all shadow-lg ${
-                      activeTab === 'bus'
+                      productType === 'bus_only'
                         ? 'bg-[#1B6FF4] hover:bg-[#0B4FCC] text-white shadow-blue-200'
-                        : 'bg-[#FF6B35] hover:bg-[#e55a28] text-white shadow-orange-200'
+                        : productType === 'bus_stay'
+                        ? 'bg-[#FF6B35] hover:bg-[#e55a28] text-white shadow-orange-200'
+                        : 'bg-[#10B981] hover:bg-[#059669] text-white shadow-green-200'
                     }`}
                   >
-                    {activeTab === 'bus' ? '🚌 무료 견적 받기' : '🏕️ 패키지 견적 받기'}
+                    {productType === 'bus_only' ? '🚌 무료 견적 받기' : productType === 'bus_stay' ? '🏕️ 버스+숙소 견적 받기' : '🍽️ 올인원 패키지 견적 받기'}
                   </button>
 
                   <p className="text-center text-xs text-gray-400">
