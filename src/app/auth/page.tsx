@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -96,6 +97,7 @@ export default function AuthPage() {
         return;
       }
 
+      toast.success('로그인 성공!');
       router.push('/');
     } catch {
       setLoginError('로그인 중 오류가 발생했습니다. 다시 시도해주세요.');
@@ -154,6 +156,7 @@ export default function AuthPage() {
 
       // If email confirmation is disabled, the user is auto-confirmed and session exists
       if (data.session) {
+        toast.success('회원가입이 완료되었습니다! 환영합니다!');
         router.push('/');
       } else {
         // Email confirmation is enabled - show success message
